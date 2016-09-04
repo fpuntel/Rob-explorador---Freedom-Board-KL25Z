@@ -1,0 +1,800 @@
+   1              		.cpu cortex-m0
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 34, 0
+  11              		.eabi_attribute 18, 4
+  12              		.code	16
+  13              		.file	"Application.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.bss.deviceData,"aw",%nobits
+  18              		.align	2
+  21              	deviceData:
+  22 0000 00000000 		.space	12
+  22      00000000 
+  22      00000000 
+  23              		.section	.text.SendChar,"ax",%progbits
+  24              		.align	2
+  25              		.code	16
+  26              		.thumb_func
+  28              	SendChar:
+  29              	.LFB0:
+  30              		.file 1 "../Sources/Application.c"
+   1:../Sources/Application.c **** #include "Application.h"
+   2:../Sources/Application.c **** #include "Ultrasonico.h"
+   3:../Sources/Application.c **** 
+   4:../Sources/Application.c **** void re();
+   5:../Sources/Application.c **** void aceleracao();
+   6:../Sources/Application.c **** void virarDireita();
+   7:../Sources/Application.c **** void virarEsquerda();
+   8:../Sources/Application.c **** void mudaRota();
+   9:../Sources/Application.c **** void endireitaVolante();
+  10:../Sources/Application.c **** 
+  11:../Sources/Application.c **** static UART_Desc deviceData;
+  12:../Sources/Application.c **** 
+  13:../Sources/Application.c **** static void SendChar(unsigned char ch, UART_Desc *desc) {
+  31              		.loc 1 13 0
+  32              		.cfi_startproc
+  33 0000 80B5     		push	{r7, lr}
+  34              	.LCFI0:
+  35              		.cfi_def_cfa_offset 8
+  36              		.cfi_offset 7, -8
+  37              		.cfi_offset 14, -4
+  38 0002 82B0     		sub	sp, sp, #8
+  39              	.LCFI1:
+  40              		.cfi_def_cfa_offset 16
+  41 0004 00AF     		add	r7, sp, #0
+  42              	.LCFI2:
+  43              		.cfi_def_cfa_register 7
+  44 0006 021C     		mov	r2, r0
+  45 0008 3960     		str	r1, [r7]
+  46 000a FB1D     		add	r3, r7, #7
+  47 000c 1A70     		strb	r2, [r3]
+  14:../Sources/Application.c ****   desc->isSent = FALSE;  /* this will be set to 1 once the block has been sent */
+  48              		.loc 1 14 0
+  49 000e 3B68     		ldr	r3, [r7]
+  50 0010 0022     		mov	r2, #0
+  51 0012 1A71     		strb	r2, [r3, #4]
+  15:../Sources/Application.c ****   while(AS1_SendBlock(desc->handle, (LDD_TData*)&ch, 1)!=ERR_OK) {} /* Send char */
+  52              		.loc 1 15 0
+  53 0014 C046     		mov	r8, r8
+  54              	.L2:
+  55              		.loc 1 15 0 is_stmt 0 discriminator 1
+  56 0016 3B68     		ldr	r3, [r7]
+  57 0018 1A68     		ldr	r2, [r3]
+  58 001a FB1D     		add	r3, r7, #7
+  59 001c 101C     		mov	r0, r2
+  60 001e 191C     		mov	r1, r3
+  61 0020 0122     		mov	r2, #1
+  62 0022 FFF7FEFF 		bl	AS1_SendBlock
+  63 0026 031C     		mov	r3, r0
+  64 0028 F5D1     		bne	.L2
+  16:../Sources/Application.c ****   while(!desc->isSent) {} /* wait until we get the green flag from the TX interrupt */
+  65              		.loc 1 16 0 is_stmt 1
+  66 002a C046     		mov	r8, r8
+  67              	.L3:
+  68              		.loc 1 16 0 is_stmt 0 discriminator 1
+  69 002c 3B68     		ldr	r3, [r7]
+  70 002e 1B79     		ldrb	r3, [r3, #4]
+  71 0030 DBB2     		uxtb	r3, r3
+  72 0032 002B     		cmp	r3, #0
+  73 0034 FAD0     		beq	.L3
+  17:../Sources/Application.c **** }
+  74              		.loc 1 17 0 is_stmt 1
+  75 0036 BD46     		mov	sp, r7
+  76 0038 02B0     		add	sp, sp, #8
+  77              		@ sp needed for prologue
+  78 003a 80BD     		pop	{r7, pc}
+  79              		.cfi_endproc
+  80              	.LFE0:
+  82              		.section	.text.SendString,"ax",%progbits
+  83              		.align	2
+  84              		.code	16
+  85              		.thumb_func
+  87              	SendString:
+  88              	.LFB1:
+  18:../Sources/Application.c ****  
+  19:../Sources/Application.c **** static void SendString(const unsigned char *str,  UART_Desc *desc) {
+  89              		.loc 1 19 0
+  90              		.cfi_startproc
+  91 0000 80B5     		push	{r7, lr}
+  92              	.LCFI3:
+  93              		.cfi_def_cfa_offset 8
+  94              		.cfi_offset 7, -8
+  95              		.cfi_offset 14, -4
+  96 0002 82B0     		sub	sp, sp, #8
+  97              	.LCFI4:
+  98              		.cfi_def_cfa_offset 16
+  99 0004 00AF     		add	r7, sp, #0
+ 100              	.LCFI5:
+ 101              		.cfi_def_cfa_register 7
+ 102 0006 7860     		str	r0, [r7, #4]
+ 103 0008 3960     		str	r1, [r7]
+  20:../Sources/Application.c ****   while(*str!='\0') {
+ 104              		.loc 1 20 0
+ 105 000a 09E0     		b	.L5
+ 106              	.L6:
+  21:../Sources/Application.c ****     SendChar(*str++, desc);
+ 107              		.loc 1 21 0
+ 108 000c 7B68     		ldr	r3, [r7, #4]
+ 109 000e 1A78     		ldrb	r2, [r3]
+ 110 0010 7B68     		ldr	r3, [r7, #4]
+ 111 0012 0133     		add	r3, r3, #1
+ 112 0014 7B60     		str	r3, [r7, #4]
+ 113 0016 3B68     		ldr	r3, [r7]
+ 114 0018 101C     		mov	r0, r2
+ 115 001a 191C     		mov	r1, r3
+ 116 001c FFF7FEFF 		bl	SendChar
+ 117              	.L5:
+  20:../Sources/Application.c ****   while(*str!='\0') {
+ 118              		.loc 1 20 0 discriminator 1
+ 119 0020 7B68     		ldr	r3, [r7, #4]
+ 120 0022 1B78     		ldrb	r3, [r3]
+ 121 0024 002B     		cmp	r3, #0
+ 122 0026 F1D1     		bne	.L6
+  22:../Sources/Application.c ****   }
+  23:../Sources/Application.c **** }
+ 123              		.loc 1 23 0
+ 124 0028 BD46     		mov	sp, r7
+ 125 002a 02B0     		add	sp, sp, #8
+ 126              		@ sp needed for prologue
+ 127 002c 80BD     		pop	{r7, pc}
+ 128              		.cfi_endproc
+ 129              	.LFE1:
+ 131 002e C046     		.section	.text.Init,"ax",%progbits
+ 132              		.align	2
+ 133              		.code	16
+ 134              		.thumb_func
+ 136              	Init:
+ 137              	.LFB2:
+  24:../Sources/Application.c ****  
+  25:../Sources/Application.c **** static void Init(void) {
+ 138              		.loc 1 25 0
+ 139              		.cfi_startproc
+ 140 0000 80B5     		push	{r7, lr}
+ 141              	.LCFI6:
+ 142              		.cfi_def_cfa_offset 8
+ 143              		.cfi_offset 7, -8
+ 144              		.cfi_offset 14, -4
+ 145 0002 00AF     		add	r7, sp, #0
+ 146              	.LCFI7:
+ 147              		.cfi_def_cfa_register 7
+  26:../Sources/Application.c ****   /* initialize struct fields */
+  27:../Sources/Application.c ****   deviceData.handle = AS1_Init(&deviceData);
+ 148              		.loc 1 27 0
+ 149 0004 104B     		ldr	r3, .L9
+ 150 0006 181C     		mov	r0, r3
+ 151 0008 FFF7FEFF 		bl	AS1_Init
+ 152 000c 021C     		mov	r2, r0
+ 153 000e 0E4B     		ldr	r3, .L9
+ 154 0010 1A60     		str	r2, [r3]
+  28:../Sources/Application.c ****   deviceData.isSent = FALSE;
+ 155              		.loc 1 28 0
+ 156 0012 0D4B     		ldr	r3, .L9
+ 157 0014 0022     		mov	r2, #0
+ 158 0016 1A71     		strb	r2, [r3, #4]
+  29:../Sources/Application.c ****   deviceData.rxChar = '\0';
+ 159              		.loc 1 29 0
+ 160 0018 0B4B     		ldr	r3, .L9
+ 161 001a 0022     		mov	r2, #0
+ 162 001c 5A71     		strb	r2, [r3, #5]
+  30:../Sources/Application.c ****   deviceData.rxPutFct = RxBuf_Put;
+ 163              		.loc 1 30 0
+ 164 001e 0A4B     		ldr	r3, .L9
+ 165 0020 0A4A     		ldr	r2, .L9+4
+ 166 0022 9A60     		str	r2, [r3, #8]
+  31:../Sources/Application.c ****   /* set up to receive RX into input buffer */
+  32:../Sources/Application.c ****   RxBuf_Init(); /* initialize RX buffer */
+ 167              		.loc 1 32 0
+ 168 0024 FFF7FEFF 		bl	RxBuf_Init
+  33:../Sources/Application.c ****   /* Set up ReceiveBlock() with a single byte buffer. We will be called in OnBlockReceived() event.
+  34:../Sources/Application.c ****   while(AS1_ReceiveBlock(deviceData.handle, (LDD_TData *)&deviceData.rxChar, sizeof(deviceData.rxCh
+ 169              		.loc 1 34 0
+ 170 0028 C046     		mov	r8, r8
+ 171              	.L8:
+ 172              		.loc 1 34 0 is_stmt 0 discriminator 1
+ 173 002a 074B     		ldr	r3, .L9
+ 174 002c 1A68     		ldr	r2, [r3]
+ 175 002e 084B     		ldr	r3, .L9+8
+ 176 0030 101C     		mov	r0, r2
+ 177 0032 191C     		mov	r1, r3
+ 178 0034 0122     		mov	r2, #1
+ 179 0036 FFF7FEFF 		bl	AS1_ReceiveBlock
+ 180 003a 031C     		mov	r3, r0
+ 181 003c F5D1     		bne	.L8
+  35:../Sources/Application.c **** 
+  36:../Sources/Application.c ****   //Ultrasonico
+  37:../Sources/Application.c ****   inicioUltrasonico(); 
+ 182              		.loc 1 37 0 is_stmt 1
+ 183 003e FFF7FEFF 		bl	inicioUltrasonico
+  38:../Sources/Application.c **** }
+ 184              		.loc 1 38 0
+ 185 0042 BD46     		mov	sp, r7
+ 186              		@ sp needed for prologue
+ 187 0044 80BD     		pop	{r7, pc}
+ 188              	.L10:
+ 189 0046 C046     		.align	2
+ 190              	.L9:
+ 191 0048 00000000 		.word	deviceData
+ 192 004c 00000000 		.word	RxBuf_Put
+ 193 0050 05000000 		.word	deviceData+5
+ 194              		.cfi_endproc
+ 195              	.LFE2:
+ 197              		.section	.rodata
+ 198              		.align	2
+ 199              	.LC3:
+ 200 0000 48656C6C 		.ascii	"Hello World\015\012\000"
+ 200      6F20576F 
+ 200      726C640D 
+ 200      0A00
+ 201              		.global	__aeabi_uidiv
+ 202              		.global	__aeabi_uidivmod
+ 203 000e 0000     		.align	2
+ 204              	.LC7:
+ 205 0010 636D3A00 		.ascii	"cm:\000"
+ 206              		.align	2
+ 207              	.LC9:
+ 208 0014 0D0A00   		.ascii	"\015\012\000"
+ 209 0017 00       		.align	2
+ 210              	.LC11:
+ 211 0018 4D756461 		.ascii	"Mudar Rota\015\012\000"
+ 211      7220526F 
+ 211      74610D0A 
+ 211      00
+ 212 0025 000000   		.section	.text.APP_Run,"ax",%progbits
+ 213              		.align	2
+ 214              		.global	APP_Run
+ 215              		.code	16
+ 216              		.thumb_func
+ 218              	APP_Run:
+ 219              	.LFB3:
+  39:../Sources/Application.c **** 
+  40:../Sources/Application.c **** 
+  41:../Sources/Application.c **** void APP_Run(void) {
+ 220              		.loc 1 41 0
+ 221              		.cfi_startproc
+ 222 0000 90B5     		push	{r4, r7, lr}
+ 223              	.LCFI8:
+ 224              		.cfi_def_cfa_offset 12
+ 225              		.cfi_offset 4, -12
+ 226              		.cfi_offset 7, -8
+ 227              		.cfi_offset 14, -4
+ 228 0002 83B0     		sub	sp, sp, #12
+ 229              	.LCFI9:
+ 230              		.cfi_def_cfa_offset 24
+ 231 0004 00AF     		add	r7, sp, #0
+ 232              	.LCFI10:
+ 233              		.cfi_def_cfa_register 7
+  42:../Sources/Application.c **** 	unsigned char cm[3];
+  43:../Sources/Application.c **** 	uint16_t c;
+  44:../Sources/Application.c **** 	//int i;
+  45:../Sources/Application.c **** 	
+  46:../Sources/Application.c **** 	Init();
+ 234              		.loc 1 46 0
+ 235 0006 FFF7FEFF 		bl	Init
+  47:../Sources/Application.c **** 	SendString((unsigned char*)"Hello World\r\n", &deviceData);
+ 236              		.loc 1 47 0
+ 237 000a 424A     		ldr	r2, .L14
+ 238 000c 424B     		ldr	r3, .L14+4
+ 239 000e 101C     		mov	r0, r2
+ 240 0010 191C     		mov	r1, r3
+ 241 0012 FFF7FEFF 		bl	SendString
+  48:../Sources/Application.c **** 	
+  49:../Sources/Application.c **** 	Inhr2_Enable();
+ 242              		.loc 1 49 0
+ 243 0016 414B     		ldr	r3, .L14+8
+ 244 0018 5B6A     		ldr	r3, [r3, #36]
+ 245 001a 181C     		mov	r0, r3
+ 246 001c FFF7FEFF 		bl	PwmLdd2_Enable
+  50:../Sources/Application.c **** 	Inhr1_Enable();
+ 247              		.loc 1 50 0
+ 248 0020 3E4B     		ldr	r3, .L14+8
+ 249 0022 9B69     		ldr	r3, [r3, #24]
+ 250 0024 181C     		mov	r0, r3
+ 251 0026 FFF7FEFF 		bl	PwmLdd1_Enable
+  51:../Sources/Application.c **** 	
+  52:../Sources/Application.c **** 	aceleracao();
+ 252              		.loc 1 52 0
+ 253 002a FFF7FEFF 		bl	aceleracao
+ 254              	.L13:
+  53:../Sources/Application.c **** 	
+  54:../Sources/Application.c **** 	for(;;) {
+  55:../Sources/Application.c **** 		c = sUltrasonico(); //Leitura do dado
+ 255              		.loc 1 55 0
+ 256 002e BC1D     		add	r4, r7, #6
+ 257 0030 FFF7FEFF 		bl	sUltrasonico
+ 258 0034 031C     		mov	r3, r0
+ 259 0036 2380     		strh	r3, [r4]
+  56:../Sources/Application.c **** 		
+  57:../Sources/Application.c **** 		//Imprime Serial
+  58:../Sources/Application.c **** 		cm[0] = (char)((c / 100)+48);
+ 260              		.loc 1 58 0
+ 261 0038 BB1D     		add	r3, r7, #6
+ 262 003a 1B88     		ldrh	r3, [r3]
+ 263 003c 181C     		mov	r0, r3
+ 264 003e 6421     		mov	r1, #100
+ 265 0040 FFF7FEFF 		bl	__aeabi_uidiv
+ 266 0044 031C     		mov	r3, r0
+ 267 0046 9BB2     		uxth	r3, r3
+ 268 0048 DBB2     		uxtb	r3, r3
+ 269 004a 3033     		add	r3, r3, #48
+ 270 004c DAB2     		uxtb	r2, r3
+ 271 004e 3B1C     		mov	r3, r7
+ 272 0050 1A70     		strb	r2, [r3]
+  59:../Sources/Application.c **** 		cm[1] = (char)(((c % 100)/10)+48);
+ 273              		.loc 1 59 0
+ 274 0052 BB1D     		add	r3, r7, #6
+ 275 0054 1B88     		ldrh	r3, [r3]
+ 276 0056 181C     		mov	r0, r3
+ 277 0058 6421     		mov	r1, #100
+ 278 005a FFF7FEFF 		bl	__aeabi_uidivmod
+ 279 005e 0B1C     		mov	r3, r1
+ 280 0060 9BB2     		uxth	r3, r3
+ 281 0062 181C     		mov	r0, r3
+ 282 0064 0A21     		mov	r1, #10
+ 283 0066 FFF7FEFF 		bl	__aeabi_uidiv
+ 284 006a 031C     		mov	r3, r0
+ 285 006c 9BB2     		uxth	r3, r3
+ 286 006e DBB2     		uxtb	r3, r3
+ 287 0070 3033     		add	r3, r3, #48
+ 288 0072 DAB2     		uxtb	r2, r3
+ 289 0074 3B1C     		mov	r3, r7
+ 290 0076 5A70     		strb	r2, [r3, #1]
+  60:../Sources/Application.c **** 		cm[2] = (char)((c % 10)+48);
+ 291              		.loc 1 60 0
+ 292 0078 BB1D     		add	r3, r7, #6
+ 293 007a 1B88     		ldrh	r3, [r3]
+ 294 007c 181C     		mov	r0, r3
+ 295 007e 0A21     		mov	r1, #10
+ 296 0080 FFF7FEFF 		bl	__aeabi_uidivmod
+ 297 0084 0B1C     		mov	r3, r1
+ 298 0086 9BB2     		uxth	r3, r3
+ 299 0088 DBB2     		uxtb	r3, r3
+ 300 008a 3033     		add	r3, r3, #48
+ 301 008c DAB2     		uxtb	r2, r3
+ 302 008e 3B1C     		mov	r3, r7
+ 303 0090 9A70     		strb	r2, [r3, #2]
+  61:../Sources/Application.c **** 		
+  62:../Sources/Application.c **** 		SendString((unsigned char*)"cm:", &deviceData);
+ 304              		.loc 1 62 0
+ 305 0092 234A     		ldr	r2, .L14+12
+ 306 0094 204B     		ldr	r3, .L14+4
+ 307 0096 101C     		mov	r0, r2
+ 308 0098 191C     		mov	r1, r3
+ 309 009a FFF7FEFF 		bl	SendString
+  63:../Sources/Application.c **** 		SendChar(cm[0], &deviceData);
+ 310              		.loc 1 63 0
+ 311 009e 3B1C     		mov	r3, r7
+ 312 00a0 1A78     		ldrb	r2, [r3]
+ 313 00a2 1D4B     		ldr	r3, .L14+4
+ 314 00a4 101C     		mov	r0, r2
+ 315 00a6 191C     		mov	r1, r3
+ 316 00a8 FFF7FEFF 		bl	SendChar
+  64:../Sources/Application.c **** 		SendChar(cm[1], &deviceData);
+ 317              		.loc 1 64 0
+ 318 00ac 3B1C     		mov	r3, r7
+ 319 00ae 5A78     		ldrb	r2, [r3, #1]
+ 320 00b0 194B     		ldr	r3, .L14+4
+ 321 00b2 101C     		mov	r0, r2
+ 322 00b4 191C     		mov	r1, r3
+ 323 00b6 FFF7FEFF 		bl	SendChar
+  65:../Sources/Application.c **** 		SendChar(cm[2], &deviceData);
+ 324              		.loc 1 65 0
+ 325 00ba 3B1C     		mov	r3, r7
+ 326 00bc 9A78     		ldrb	r2, [r3, #2]
+ 327 00be 164B     		ldr	r3, .L14+4
+ 328 00c0 101C     		mov	r0, r2
+ 329 00c2 191C     		mov	r1, r3
+ 330 00c4 FFF7FEFF 		bl	SendChar
+  66:../Sources/Application.c **** 		SendString((unsigned char*)"\r\n", &deviceData);
+ 331              		.loc 1 66 0
+ 332 00c8 164A     		ldr	r2, .L14+16
+ 333 00ca 134B     		ldr	r3, .L14+4
+ 334 00cc 101C     		mov	r0, r2
+ 335 00ce 191C     		mov	r1, r3
+ 336 00d0 FFF7FEFF 		bl	SendString
+  67:../Sources/Application.c **** 
+  68:../Sources/Application.c **** 		WAIT1_Waitms(500);
+ 337              		.loc 1 68 0
+ 338 00d4 FA23     		mov	r3, #250
+ 339 00d6 5B00     		lsl	r3, r3, #1
+ 340 00d8 181C     		mov	r0, r3
+ 341 00da FFF7FEFF 		bl	WAIT1_Waitms
+  69:../Sources/Application.c **** 		
+  70:../Sources/Application.c **** 		//re();
+  71:../Sources/Application.c **** 		if(c < 10 && c > 0 && c != 6){
+ 342              		.loc 1 71 0
+ 343 00de BB1D     		add	r3, r7, #6
+ 344 00e0 1B88     		ldrh	r3, [r3]
+ 345 00e2 092B     		cmp	r3, #9
+ 346 00e4 0FD8     		bhi	.L12
+ 347              		.loc 1 71 0 is_stmt 0 discriminator 1
+ 348 00e6 BB1D     		add	r3, r7, #6
+ 349 00e8 1B88     		ldrh	r3, [r3]
+ 350 00ea 002B     		cmp	r3, #0
+ 351 00ec 0BD0     		beq	.L12
+ 352 00ee BB1D     		add	r3, r7, #6
+ 353 00f0 1B88     		ldrh	r3, [r3]
+ 354 00f2 062B     		cmp	r3, #6
+ 355 00f4 07D0     		beq	.L12
+  72:../Sources/Application.c **** 			SendString((unsigned char*)"Mudar Rota\r\n", &deviceData);
+ 356              		.loc 1 72 0 is_stmt 1
+ 357 00f6 0C4A     		ldr	r2, .L14+20
+ 358 00f8 074B     		ldr	r3, .L14+4
+ 359 00fa 101C     		mov	r0, r2
+ 360 00fc 191C     		mov	r1, r3
+ 361 00fe FFF7FEFF 		bl	SendString
+  73:../Sources/Application.c **** 			mudaRota();
+ 362              		.loc 1 73 0
+ 363 0102 FFF7FEFF 		bl	mudaRota
+ 364              	.L12:
+  74:../Sources/Application.c **** 		}
+  75:../Sources/Application.c **** 		
+  76:../Sources/Application.c **** 		 //Ré
+  77:../Sources/Application.c **** 	//	(void)Inhr2_SetRatio8(255);
+  78:../Sources/Application.c **** 
+  79:../Sources/Application.c **** 	//	for(i = 0; i < 255; i++)
+  80:../Sources/Application.c **** 	//	{
+  81:../Sources/Application.c **** 	//		(void)Inhr2_SetRatio8(i);
+  82:../Sources/Application.c **** 	//		WAIT1_Waitms(10);
+  83:../Sources/Application.c **** 	//	}
+  84:../Sources/Application.c **** 		
+  85:../Sources/Application.c **** 	//	WAIT1_Waitms(500);
+  86:../Sources/Application.c **** 	//	(void)Inhr2_SetRatio8(0);
+  87:../Sources/Application.c **** 		
+  88:../Sources/Application.c **** 	//	for(i = 0; i < 255; i++)
+  89:../Sources/Application.c **** 	//	{
+  90:../Sources/Application.c **** 	//		(void)Inhr1_SetRatio8(i);
+  91:../Sources/Application.c **** 	//		WAIT1_Waitms(10);
+  92:../Sources/Application.c **** 	//	}
+  93:../Sources/Application.c **** 		WAIT1_Waitms(500);
+ 365              		.loc 1 93 0
+ 366 0106 FA23     		mov	r3, #250
+ 367 0108 5B00     		lsl	r3, r3, #1
+ 368 010a 181C     		mov	r0, r3
+ 369 010c FFF7FEFF 		bl	WAIT1_Waitms
+  94:../Sources/Application.c **** 	}
+ 370              		.loc 1 94 0
+ 371 0110 8DE7     		b	.L13
+ 372              	.L15:
+ 373 0112 C046     		.align	2
+ 374              	.L14:
+ 375 0114 00000000 		.word	.LC3
+ 376 0118 00000000 		.word	deviceData
+ 377 011c 00000000 		.word	PE_LDD_DeviceDataList
+ 378 0120 10000000 		.word	.LC7
+ 379 0124 14000000 		.word	.LC9
+ 380 0128 18000000 		.word	.LC11
+ 381              		.cfi_endproc
+ 382              	.LFE3:
+ 384              		.section	.text.virarDireita,"ax",%progbits
+ 385              		.align	2
+ 386              		.global	virarDireita
+ 387              		.code	16
+ 388              		.thumb_func
+ 390              	virarDireita:
+ 391              	.LFB4:
+  95:../Sources/Application.c **** }
+  96:../Sources/Application.c **** 
+  97:../Sources/Application.c **** void virarDireita(){
+ 392              		.loc 1 97 0
+ 393              		.cfi_startproc
+ 394 0000 80B5     		push	{r7, lr}
+ 395              	.LCFI11:
+ 396              		.cfi_def_cfa_offset 8
+ 397              		.cfi_offset 7, -8
+ 398              		.cfi_offset 14, -4
+ 399 0002 00AF     		add	r7, sp, #0
+ 400              	.LCFI12:
+ 401              		.cfi_def_cfa_register 7
+  98:../Sources/Application.c **** 	LEDpin4_PutVal(0); //Motor frente 
+ 402              		.loc 1 98 0
+ 403 0004 064B     		ldr	r3, .L17
+ 404 0006 9B6A     		ldr	r3, [r3, #40]
+ 405 0008 181C     		mov	r0, r3
+ 406 000a 0021     		mov	r1, #0
+ 407 000c FFF7FEFF 		bl	BitIoLdd5_PutVal
+  99:../Sources/Application.c **** 	LEDpin5_PutVal(1); //Motor frente
+ 408              		.loc 1 99 0
+ 409 0010 034B     		ldr	r3, .L17
+ 410 0012 DB6A     		ldr	r3, [r3, #44]
+ 411 0014 181C     		mov	r0, r3
+ 412 0016 0121     		mov	r1, #1
+ 413 0018 FFF7FEFF 		bl	BitIoLdd6_PutVal
+ 100:../Sources/Application.c **** }
+ 414              		.loc 1 100 0
+ 415 001c BD46     		mov	sp, r7
+ 416              		@ sp needed for prologue
+ 417 001e 80BD     		pop	{r7, pc}
+ 418              	.L18:
+ 419              		.align	2
+ 420              	.L17:
+ 421 0020 00000000 		.word	PE_LDD_DeviceDataList
+ 422              		.cfi_endproc
+ 423              	.LFE4:
+ 425              		.section	.text.virarEsquerda,"ax",%progbits
+ 426              		.align	2
+ 427              		.global	virarEsquerda
+ 428              		.code	16
+ 429              		.thumb_func
+ 431              	virarEsquerda:
+ 432              	.LFB5:
+ 101:../Sources/Application.c **** void virarEsquerda(){
+ 433              		.loc 1 101 0
+ 434              		.cfi_startproc
+ 435 0000 80B5     		push	{r7, lr}
+ 436              	.LCFI13:
+ 437              		.cfi_def_cfa_offset 8
+ 438              		.cfi_offset 7, -8
+ 439              		.cfi_offset 14, -4
+ 440 0002 00AF     		add	r7, sp, #0
+ 441              	.LCFI14:
+ 442              		.cfi_def_cfa_register 7
+ 102:../Sources/Application.c **** 	LEDpin4_PutVal(1); //Motor frente 
+ 443              		.loc 1 102 0
+ 444 0004 064B     		ldr	r3, .L20
+ 445 0006 9B6A     		ldr	r3, [r3, #40]
+ 446 0008 181C     		mov	r0, r3
+ 447 000a 0121     		mov	r1, #1
+ 448 000c FFF7FEFF 		bl	BitIoLdd5_PutVal
+ 103:../Sources/Application.c **** 	LEDpin5_PutVal(0); //Motor frente
+ 449              		.loc 1 103 0
+ 450 0010 034B     		ldr	r3, .L20
+ 451 0012 DB6A     		ldr	r3, [r3, #44]
+ 452 0014 181C     		mov	r0, r3
+ 453 0016 0021     		mov	r1, #0
+ 454 0018 FFF7FEFF 		bl	BitIoLdd6_PutVal
+ 104:../Sources/Application.c **** }
+ 455              		.loc 1 104 0
+ 456 001c BD46     		mov	sp, r7
+ 457              		@ sp needed for prologue
+ 458 001e 80BD     		pop	{r7, pc}
+ 459              	.L21:
+ 460              		.align	2
+ 461              	.L20:
+ 462 0020 00000000 		.word	PE_LDD_DeviceDataList
+ 463              		.cfi_endproc
+ 464              	.LFE5:
+ 466              		.section	.text.endireitaVolante,"ax",%progbits
+ 467              		.align	2
+ 468              		.global	endireitaVolante
+ 469              		.code	16
+ 470              		.thumb_func
+ 472              	endireitaVolante:
+ 473              	.LFB6:
+ 105:../Sources/Application.c **** void endireitaVolante(){
+ 474              		.loc 1 105 0
+ 475              		.cfi_startproc
+ 476 0000 80B5     		push	{r7, lr}
+ 477              	.LCFI15:
+ 478              		.cfi_def_cfa_offset 8
+ 479              		.cfi_offset 7, -8
+ 480              		.cfi_offset 14, -4
+ 481 0002 00AF     		add	r7, sp, #0
+ 482              	.LCFI16:
+ 483              		.cfi_def_cfa_register 7
+ 106:../Sources/Application.c **** 	LEDpin4_PutVal(0); 
+ 484              		.loc 1 106 0
+ 485 0004 064B     		ldr	r3, .L23
+ 486 0006 9B6A     		ldr	r3, [r3, #40]
+ 487 0008 181C     		mov	r0, r3
+ 488 000a 0021     		mov	r1, #0
+ 489 000c FFF7FEFF 		bl	BitIoLdd5_PutVal
+ 107:../Sources/Application.c **** 	LEDpin5_PutVal(0);
+ 490              		.loc 1 107 0
+ 491 0010 034B     		ldr	r3, .L23
+ 492 0012 DB6A     		ldr	r3, [r3, #44]
+ 493 0014 181C     		mov	r0, r3
+ 494 0016 0021     		mov	r1, #0
+ 495 0018 FFF7FEFF 		bl	BitIoLdd6_PutVal
+ 108:../Sources/Application.c **** }
+ 496              		.loc 1 108 0
+ 497 001c BD46     		mov	sp, r7
+ 498              		@ sp needed for prologue
+ 499 001e 80BD     		pop	{r7, pc}
+ 500              	.L24:
+ 501              		.align	2
+ 502              	.L23:
+ 503 0020 00000000 		.word	PE_LDD_DeviceDataList
+ 504              		.cfi_endproc
+ 505              	.LFE6:
+ 507              		.section	.text.re,"ax",%progbits
+ 508              		.align	2
+ 509              		.global	re
+ 510              		.code	16
+ 511              		.thumb_func
+ 513              	re:
+ 514              	.LFB7:
+ 109:../Sources/Application.c **** void re(){
+ 515              		.loc 1 109 0
+ 516              		.cfi_startproc
+ 517 0000 80B5     		push	{r7, lr}
+ 518              	.LCFI17:
+ 519              		.cfi_def_cfa_offset 8
+ 520              		.cfi_offset 7, -8
+ 521              		.cfi_offset 14, -4
+ 522 0002 00AF     		add	r7, sp, #0
+ 523              	.LCFI18:
+ 524              		.cfi_def_cfa_register 7
+ 110:../Sources/Application.c **** 	(void)Inhr1_SetRatio8(0);
+ 525              		.loc 1 110 0
+ 526 0004 064B     		ldr	r3, .L26
+ 527 0006 9B69     		ldr	r3, [r3, #24]
+ 528 0008 181C     		mov	r0, r3
+ 529 000a 0021     		mov	r1, #0
+ 530 000c FFF7FEFF 		bl	PwmLdd1_SetRatio8
+ 111:../Sources/Application.c **** 	(void)Inhr2_SetRatio8(100);
+ 531              		.loc 1 111 0
+ 532 0010 034B     		ldr	r3, .L26
+ 533 0012 5B6A     		ldr	r3, [r3, #36]
+ 534 0014 181C     		mov	r0, r3
+ 535 0016 6421     		mov	r1, #100
+ 536 0018 FFF7FEFF 		bl	PwmLdd2_SetRatio8
+ 112:../Sources/Application.c **** }
+ 537              		.loc 1 112 0
+ 538 001c BD46     		mov	sp, r7
+ 539              		@ sp needed for prologue
+ 540 001e 80BD     		pop	{r7, pc}
+ 541              	.L27:
+ 542              		.align	2
+ 543              	.L26:
+ 544 0020 00000000 		.word	PE_LDD_DeviceDataList
+ 545              		.cfi_endproc
+ 546              	.LFE7:
+ 548              		.section	.text.aceleracao,"ax",%progbits
+ 549              		.align	2
+ 550              		.global	aceleracao
+ 551              		.code	16
+ 552              		.thumb_func
+ 554              	aceleracao:
+ 555              	.LFB8:
+ 113:../Sources/Application.c **** void aceleracao(){
+ 556              		.loc 1 113 0
+ 557              		.cfi_startproc
+ 558 0000 80B5     		push	{r7, lr}
+ 559              	.LCFI19:
+ 560              		.cfi_def_cfa_offset 8
+ 561              		.cfi_offset 7, -8
+ 562              		.cfi_offset 14, -4
+ 563 0002 00AF     		add	r7, sp, #0
+ 564              	.LCFI20:
+ 565              		.cfi_def_cfa_register 7
+ 114:../Sources/Application.c **** 	(void)Inhr2_SetRatio8(0);
+ 566              		.loc 1 114 0
+ 567 0004 064B     		ldr	r3, .L29
+ 568 0006 5B6A     		ldr	r3, [r3, #36]
+ 569 0008 181C     		mov	r0, r3
+ 570 000a 0021     		mov	r1, #0
+ 571 000c FFF7FEFF 		bl	PwmLdd2_SetRatio8
+ 115:../Sources/Application.c **** 	(void)Inhr1_SetRatio8(50);
+ 572              		.loc 1 115 0
+ 573 0010 034B     		ldr	r3, .L29
+ 574 0012 9B69     		ldr	r3, [r3, #24]
+ 575 0014 181C     		mov	r0, r3
+ 576 0016 3221     		mov	r1, #50
+ 577 0018 FFF7FEFF 		bl	PwmLdd1_SetRatio8
+ 116:../Sources/Application.c **** }
+ 578              		.loc 1 116 0
+ 579 001c BD46     		mov	sp, r7
+ 580              		@ sp needed for prologue
+ 581 001e 80BD     		pop	{r7, pc}
+ 582              	.L30:
+ 583              		.align	2
+ 584              	.L29:
+ 585 0020 00000000 		.word	PE_LDD_DeviceDataList
+ 586              		.cfi_endproc
+ 587              	.LFE8:
+ 589              		.section	.text.mudaRota,"ax",%progbits
+ 590              		.align	2
+ 591              		.global	mudaRota
+ 592              		.code	16
+ 593              		.thumb_func
+ 595              	mudaRota:
+ 596              	.LFB9:
+ 117:../Sources/Application.c **** void mudaRota(){
+ 597              		.loc 1 117 0
+ 598              		.cfi_startproc
+ 599 0000 80B5     		push	{r7, lr}
+ 600              	.LCFI21:
+ 601              		.cfi_def_cfa_offset 8
+ 602              		.cfi_offset 7, -8
+ 603              		.cfi_offset 14, -4
+ 604 0002 00AF     		add	r7, sp, #0
+ 605              	.LCFI22:
+ 606              		.cfi_def_cfa_register 7
+ 118:../Sources/Application.c **** 	virarDireita();
+ 607              		.loc 1 118 0
+ 608 0004 FFF7FEFF 		bl	virarDireita
+ 119:../Sources/Application.c **** 	re();
+ 609              		.loc 1 119 0
+ 610 0008 FFF7FEFF 		bl	re
+ 120:../Sources/Application.c **** 	WAIT1_Waitms(800);
+ 611              		.loc 1 120 0
+ 612 000c C823     		mov	r3, #200
+ 613 000e 9B00     		lsl	r3, r3, #2
+ 614 0010 181C     		mov	r0, r3
+ 615 0012 FFF7FEFF 		bl	WAIT1_Waitms
+ 121:../Sources/Application.c **** 	aceleracao();
+ 616              		.loc 1 121 0
+ 617 0016 FFF7FEFF 		bl	aceleracao
+ 122:../Sources/Application.c **** 	virarEsquerda();
+ 618              		.loc 1 122 0
+ 619 001a FFF7FEFF 		bl	virarEsquerda
+ 123:../Sources/Application.c **** 	WAIT1_Waitms(40);
+ 620              		.loc 1 123 0
+ 621 001e 2820     		mov	r0, #40
+ 622 0020 FFF7FEFF 		bl	WAIT1_Waitms
+ 124:../Sources/Application.c **** 	endireitaVolante();
+ 623              		.loc 1 124 0
+ 624 0024 FFF7FEFF 		bl	endireitaVolante
+ 125:../Sources/Application.c **** }
+ 625              		.loc 1 125 0
+ 626 0028 BD46     		mov	sp, r7
+ 627              		@ sp needed for prologue
+ 628 002a 80BD     		pop	{r7, pc}
+ 629              		.cfi_endproc
+ 630              	.LFE9:
+ 632              		.text
+ 633              	.Letext0:
+ 634              		.file 2 "C:/Freescale/CW MCU v10.3/MCU/ARM_GCC_Support/ewl/EWL_C/include/cstdint"
+ 635              		.file 3 "C:/Users/LARM/workspace/Hello UltrasonicoMotor/Generated_Code/PE_LDD.h"
+ 636              		.file 4 "../Sources/Application.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 Application.c
+C:\Users\LARM\AppData\Local\Temp\ccBushix.s:18     .bss.deviceData:00000000 $d
+C:\Users\LARM\AppData\Local\Temp\ccBushix.s:21     .bss.deviceData:00000000 deviceData
+C:\Users\LARM\AppData\Local\Temp\ccBushix.s:24     .text.SendChar:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\ccBushix.s:28     .text.SendChar:00000000 SendChar
+C:\Users\LARM\AppData\Local\Temp\ccBushix.s:83     .text.SendString:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\ccBushix.s:87     .text.SendString:00000000 SendString
+C:\Users\LARM\AppData\Local\Temp\ccBushix.s:132    .text.Init:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\ccBushix.s:136    .text.Init:00000000 Init
+C:\Users\LARM\AppData\Local\Temp\ccBushix.s:191    .text.Init:00000048 $d
+C:\Users\LARM\AppData\Local\Temp\ccBushix.s:198    .rodata:00000000 $d
+C:\Users\LARM\AppData\Local\Temp\ccBushix.s:213    .text.APP_Run:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\ccBushix.s:218    .text.APP_Run:00000000 APP_Run
+C:\Users\LARM\AppData\Local\Temp\ccBushix.s:554    .text.aceleracao:00000000 aceleracao
+C:\Users\LARM\AppData\Local\Temp\ccBushix.s:595    .text.mudaRota:00000000 mudaRota
+C:\Users\LARM\AppData\Local\Temp\ccBushix.s:375    .text.APP_Run:00000114 $d
+C:\Users\LARM\AppData\Local\Temp\ccBushix.s:385    .text.virarDireita:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\ccBushix.s:390    .text.virarDireita:00000000 virarDireita
+C:\Users\LARM\AppData\Local\Temp\ccBushix.s:421    .text.virarDireita:00000020 $d
+C:\Users\LARM\AppData\Local\Temp\ccBushix.s:426    .text.virarEsquerda:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\ccBushix.s:431    .text.virarEsquerda:00000000 virarEsquerda
+C:\Users\LARM\AppData\Local\Temp\ccBushix.s:462    .text.virarEsquerda:00000020 $d
+C:\Users\LARM\AppData\Local\Temp\ccBushix.s:467    .text.endireitaVolante:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\ccBushix.s:472    .text.endireitaVolante:00000000 endireitaVolante
+C:\Users\LARM\AppData\Local\Temp\ccBushix.s:503    .text.endireitaVolante:00000020 $d
+C:\Users\LARM\AppData\Local\Temp\ccBushix.s:508    .text.re:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\ccBushix.s:513    .text.re:00000000 re
+C:\Users\LARM\AppData\Local\Temp\ccBushix.s:544    .text.re:00000020 $d
+C:\Users\LARM\AppData\Local\Temp\ccBushix.s:549    .text.aceleracao:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\ccBushix.s:585    .text.aceleracao:00000020 $d
+C:\Users\LARM\AppData\Local\Temp\ccBushix.s:590    .text.mudaRota:00000000 $t
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+AS1_SendBlock
+AS1_Init
+RxBuf_Init
+AS1_ReceiveBlock
+inicioUltrasonico
+RxBuf_Put
+__aeabi_uidiv
+__aeabi_uidivmod
+PwmLdd2_Enable
+PwmLdd1_Enable
+sUltrasonico
+WAIT1_Waitms
+PE_LDD_DeviceDataList
+BitIoLdd5_PutVal
+BitIoLdd6_PutVal
+PwmLdd1_SetRatio8
+PwmLdd2_SetRatio8

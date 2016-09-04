@@ -1,0 +1,89 @@
+<CodeGenerationInfo>
+  <ToolchainSettings>
+    <option>
+      <name>PE_G_4PEx_ToolChain_Compiler_SearchUserPaths</name>
+      <values lines_count="4">
+        <Line>"${ProcessorExpertPath}/lib/Kinetis/iofiles"</Line>
+        <Line>"${ProcessorExpertPath}/lib/Kinetis/pdd/inc"</Line>
+        <Line>"${ProjDirPath}/Sources"</Line>
+        <Line>"${ProjDirPath}/Generated_Code"</Line>
+      </values>
+    </option>
+  </ToolchainSettings>
+  <GeneratedFilesList>
+    <GeneratedByPE>
+      <File Name="Generated_Code\MF01.c" FileDate="2013-08-21, 17:47:51" FileAge="1377118071396" FileType="4411" CompNumb="53" />
+      <File Name="Generated_Code\LEDpin5.c" FileDate="2013-08-21, 17:49:24" FileAge="1377118164854" FileType="4411" />
+      <File Name="Generated_Code\TU2.c" FileDate="2013-08-21, 11:26:39" FileAge="1377095199583" FileType="4411" CompNumb="31" />
+      <File Name="Generated_Code\LED1.h" FileDate="2013-08-21, 10:54:19" FileAge="1377093259177" FileType="4411" CompNumb="17" />
+      <File Name="Generated_Code\LEDpin4.h" FileDate="2013-08-21, 17:50:06" FileAge="1377118206715" FileType="4411" />
+      <File Name="Generated_Code\PE_Const.h" FileDate="2013-08-21, 10:54:19" FileAge="1377093259123" FileType="4411" />
+      <File Name="Generated_Code\TU1.h" FileDate="2013-08-21, 10:54:19" FileAge="1377093259194" FileType="4411" CompNumb="14" />
+      <File Name="Generated_Code\LED1.c" FileDate="2013-08-21, 10:54:19" FileAge="1377093259175" FileType="4411" CompNumb="17" />
+      <File Name="Generated_Code\PE_Types.h" FileDate="2013-08-21, 10:54:19" FileAge="1377093259126" FileType="4411" />
+      <File Name="Generated_Code\LEDpin4.c" FileDate="2013-08-21, 17:50:06" FileAge="1377118206717" FileType="4411" />
+      <File Name="Generated_Code\TU1.c" FileDate="2013-08-21, 10:54:19" FileAge="1377093259192" FileType="4411" CompNumb="14" />
+      <File Name="Generated_Code\PE_Error.h" FileDate="2013-08-21, 10:54:19" FileAge="1377093259124" FileType="4411" />
+      <File Name="Generated_Code\Vectors.c" FileDate="2013-08-21, 17:47:51" FileAge="1377118071457" FileType="4411" CompNumb="2" />
+      <File Name="Generated_Code\LEDpin3.h" FileDate="2013-08-21, 10:54:19" FileAge="1377093259139" FileType="4411" />
+      <File Name="Project_Settings\Linker_Files\ProcessorExpert.ld" FileDate="2013-07-11, 15:30:19" FileAge="1373567419763" FileType="4" CompNumb="2" />
+      <File Name="Generated_Code\BitIoLdd6.h" FileDate="2013-08-21, 17:49:24" FileAge="1377118164849" FileType="4411" />
+      <File Name="Generated_Code\LEDpin3.c" FileDate="2013-08-21, 10:54:19" FileAge="1377093259138" FileType="4411" />
+      <File Name="Generated_Code\BitIoLdd6.c" FileDate="2013-08-21, 17:49:24" FileAge="1377118164851" FileType="4411" />
+      <File Name="Generated_Code\BitIoLdd5.h" FileDate="2013-08-21, 17:50:06" FileAge="1377118206711" FileType="4411" />
+      <File Name="Generated_Code\IO_Map.h" FileDate="2013-08-21, 10:54:19" FileAge="1377093259121" FileType="4411" />
+      <File Name="Documentation\ProcessorExpert.txt" FileDate="2013-08-21, 17:47:51" FileAge="1377118071546" FileType="3072" />
+      <File Name="Generated_Code\Inhr2.h" FileDate="2013-08-21, 10:54:19" FileAge="1377093259132" FileType="4411" />
+      <File Name="Generated_Code\Bit1.h" FileDate="2013-08-21, 10:54:19" FileAge="1377093259200" FileType="4411" CompNumb="8" />
+      <File Name="Generated_Code\WAIT1.h" FileDate="2013-08-21, 10:54:19" FileAge="1377093259191" FileType="4411" CompNumb="15" />
+      <File Name="Generated_Code\BitIoLdd5.c" FileDate="2013-08-21, 17:50:06" FileAge="1377118206713" FileType="4411" />
+      <File Name="Sources\Events.h" FileDate="2013-08-21, 17:47:51" FileAge="1377118071460" FileType="16896" />
+      <File Name="Generated_Code\RxBuf.h" FileDate="2013-08-21, 10:54:19" FileAge="1377093259207" FileType="4411" CompNumb="7" />
+      <File Name="Generated_Code\Bit1.c" FileDate="2013-08-21, 10:54:19" FileAge="1377093259199" FileType="4411" CompNumb="8" />
+      <File Name="Generated_Code\Inhr2.c" FileDate="2013-08-21, 10:54:19" FileAge="1377093259131" FileType="4411" />
+      <File Name="Generated_Code\TRIG.h" FileDate="2013-08-21, 10:54:19" FileAge="1377093259197" FileType="4411" CompNumb="13" />
+      <File Name="Generated_Code\WAIT1.c" FileDate="2013-08-21, 10:54:19" FileAge="1377093259189" FileType="4411" CompNumb="15" />
+      <File Name="Generated_Code\LEDpin1.h" FileDate="2013-08-21, 10:54:19" FileAge="1377093259180" FileType="4411" />
+      <File Name="Project_Settings\Debugger\MKL25Z128.mem" FileDate="2013-07-11, 15:30:19" FileAge="1373567419775" FileType="4411" CompNumb="2" />
+      <File Name="Generated_Code\BitIoLdd4.h" FileDate="2013-08-21, 10:54:19" FileAge="1377093259143" FileType="4411" />
+      <File Name="Sources\Events.c" FileDate="2013-08-21, 10:54:19" FileAge="1377093259098" FileType="16896" />
+      <File Name="Generated_Code\RxBuf.c" FileDate="2013-08-21, 10:54:19" FileAge="1377093259206" FileType="4411" CompNumb="7" />
+      <File Name="Generated_Code\LEDpin1.c" FileDate="2013-08-21, 10:54:19" FileAge="1377093259179" FileType="4411" />
+      <File Name="Generated_Code\AS1.h" FileDate="2013-08-21, 10:54:19" FileAge="1377093259210" FileType="4411" CompNumb="6" />
+      <File Name="Generated_Code\TRIG.c" FileDate="2013-08-21, 10:54:19" FileAge="1377093259196" FileType="4411" CompNumb="13" />
+      <File Name="Generated_Code\Inhr1.h" FileDate="2013-08-21, 11:26:39" FileAge="1377095199548" FileType="4411" />
+      <File Name="Generated_Code\BitIoLdd4.c" FileDate="2013-08-21, 10:54:19" FileAge="1377093259141" FileType="4411" />
+      <File Name="Generated_Code\AS1.c" FileDate="2013-08-21, 10:54:19" FileAge="1377093259209" FileType="4411" CompNumb="6" />
+      <File Name="Generated_Code\Inhr1.c" FileDate="2013-08-21, 11:26:39" FileAge="1377095199545" FileType="4411" />
+      <File Name="Generated_Code\PwmLdd2.h" FileDate="2013-08-21, 10:54:19" FileAge="1377093259135" FileType="4411" />
+      <File Name="Documentation\ProcessorExpert_Settings.xml" FileDate="2013-08-21, 17:50:06" FileAge="1377118206765" FileType="3072" />
+      <File Name="Generated_Code\BitIoLdd2.h" FileDate="2013-08-21, 10:54:19" FileAge="1377093259184" FileType="4411" />
+      <File Name="Generated_Code\PwmLdd2.c" FileDate="2013-08-21, 10:54:19" FileAge="1377093259134" FileType="4411" />
+      <File Name="Documentation\ProcessorExpert_SIGNALS.txt" FileDate="2013-08-22, 11:03:34" FileAge="1377180214868" FileType="3072" />
+      <File Name="Generated_Code\BitIoLdd2.c" FileDate="2013-08-21, 10:54:19" FileAge="1377093259182" FileType="4411" />
+      <File Name="Generated_Code\PwmLdd1.h" FileDate="2013-08-21, 11:26:39" FileAge="1377095199585" FileType="4411" />
+      <File Name="Generated_Code\PE_LDD.h" FileDate="2013-08-21, 17:47:51" FileAge="1377118071455" FileType="4411" CompNumb="2" />
+      <File Name="Generated_Code\BitIoLdd1.h" FileDate="2013-08-21, 10:54:19" FileAge="1377093259204" FileType="4411" />
+      <File Name="Generated_Code\PwmLdd1.c" FileDate="2013-08-21, 11:26:39" FileAge="1377095199587" FileType="4411" />
+      <File Name="Generated_Code\Cpu.h" FileDate="2013-08-21, 10:54:19" FileAge="1377093259111" FileType="4411" CompNumb="2" />
+      <File Name="Generated_Code\LED3.h" FileDate="2013-08-21, 10:54:19" FileAge="1377093259129" FileType="4411" CompNumb="41" />
+      <File Name="Generated_Code\PE_LDD.c" FileDate="2013-08-21, 17:47:51" FileAge="1377118071453" FileType="4411" CompNumb="2" />
+      <File Name="Generated_Code\MF02.h" FileDate="2013-08-21, 17:47:51" FileAge="1377118071390" FileType="4411" CompNumb="56" />
+      <File Name="Generated_Code\BitIoLdd1.c" FileDate="2013-08-21, 10:54:19" FileAge="1377093259202" FileType="4411" />
+      <File Name="Generated_Code\TU3.h" FileDate="2013-08-21, 10:54:19" FileAge="1377093259146" FileType="4411" CompNumb="40" />
+      <File Name="Generated_Code\Cpu.c" FileDate="2013-08-21, 17:47:51" FileAge="1377118071451" FileType="4411" CompNumb="2" />
+      <File Name="Generated_Code\UTIL1.h" FileDate="2013-08-21, 10:54:19" FileAge="1377093259187" FileType="4411" CompNumb="16" />
+      <File Name="Generated_Code\LED3.c" FileDate="2013-08-21, 10:54:19" FileAge="1377093259128" FileType="4411" CompNumb="41" />
+      <File Name="Generated_Code\MF02.c" FileDate="2013-08-21, 17:47:51" FileAge="1377118071389" FileType="4411" CompNumb="56" />
+      <File Name="Generated_Code\TU3.c" FileDate="2013-08-21, 10:54:19" FileAge="1377093259144" FileType="4411" CompNumb="40" />
+      <File Name="Generated_Code\UTIL1.c" FileDate="2013-08-21, 10:54:19" FileAge="1377093259186" FileType="4411" CompNumb="16" />
+      <File Name="Generated_Code\LED2.h" FileDate="2013-08-21, 11:26:39" FileAge="1377095199589" FileType="4411" CompNumb="35" />
+      <File Name="Generated_Code\MF01.h" FileDate="2013-08-21, 17:47:51" FileAge="1377118071397" FileType="4411" CompNumb="53" />
+      <File Name="Sources\ProcessorExpert.c" FileDate="2013-08-21, 17:47:51" FileAge="1377118071449" FileType="128" />
+      <File Name="Generated_Code\LEDpin5.h" FileDate="2013-08-21, 17:49:24" FileAge="1377118164853" FileType="4411" />
+      <File Name="Generated_Code\TU2.h" FileDate="2013-08-21, 11:26:39" FileAge="1377095199581" FileType="4411" CompNumb="31" />
+      <File Name="Generated_Code\LED2.c" FileDate="2013-08-21, 11:26:39" FileAge="1377095199591" FileType="4411" CompNumb="35" />
+    </GeneratedByPE>
+  </GeneratedFilesList>
+  <CodeGenReference>26</CodeGenReference>
+</CodeGenerationInfo>
