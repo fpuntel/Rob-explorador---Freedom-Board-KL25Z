@@ -1,0 +1,710 @@
+   1              		.cpu cortex-m0
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 34, 0
+  11              		.eabi_attribute 18, 4
+  12              		.code	16
+  13              		.file	"Application.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.global	passo
+  18              		.section	.bss.passo,"aw",%nobits
+  19              		.align	2
+  22              	passo:
+  23 0000 00000000 		.space	4
+  24              		.global	angulo
+  25              		.section	.bss.angulo,"aw",%nobits
+  26              		.align	2
+  29              	angulo:
+  30 0000 00000000 		.space	4
+  31              		.section	.text.APP_Run,"ax",%progbits
+  32              		.align	2
+  33              		.global	APP_Run
+  34              		.code	16
+  35              		.thumb_func
+  37              	APP_Run:
+  38              	.LFB0:
+  39              		.file 1 "../Sources/Application.c"
+   1:../Sources/Application.c **** #include "Application.h"
+   2:../Sources/Application.c **** #include "Ultrasonico.h"
+   3:../Sources/Application.c **** 
+   4:../Sources/Application.c **** void re();
+   5:../Sources/Application.c **** void aceleracao();
+   6:../Sources/Application.c **** void virar();
+   7:../Sources/Application.c **** void mudaRota();
+   8:../Sources/Application.c **** void endireitaVolante();
+   9:../Sources/Application.c **** 
+  10:../Sources/Application.c **** //static UART_Desc deviceData;
+  11:../Sources/Application.c **** int passo = 0;
+  12:../Sources/Application.c **** int angulo = 0;
+  13:../Sources/Application.c **** 
+  14:../Sources/Application.c **** void APP_Run(void) {
+  40              		.loc 1 14 0
+  41              		.cfi_startproc
+  42 0000 80B5     		push	{r7, lr}
+  43              	.LCFI0:
+  44              		.cfi_def_cfa_offset 8
+  45              		.cfi_offset 7, -8
+  46              		.cfi_offset 14, -4
+  47 0002 00AF     		add	r7, sp, #0
+  48              	.LCFI1:
+  49              		.cfi_def_cfa_register 7
+  15:../Sources/Application.c **** 	//unsigned char cm[3];
+  16:../Sources/Application.c **** 	uint16_t c;
+  17:../Sources/Application.c **** 	//int i;
+  18:../Sources/Application.c **** 	
+  19:../Sources/Application.c **** 	//Init();
+  20:../Sources/Application.c **** 	//SendString((unsigned char*)"Hello World\r\n", &deviceData);
+  21:../Sources/Application.c **** 	
+  22:../Sources/Application.c **** 	//Inhr2_Enable();
+  23:../Sources/Application.c **** 	//Inhr1_Enable();
+  24:../Sources/Application.c **** 	
+  25:../Sources/Application.c **** 	//aceleracao();
+  26:../Sources/Application.c **** 	
+  27:../Sources/Application.c **** 	//for(;;) {
+  28:../Sources/Application.c **** 	//	c = sUltrasonico(); //Leitura do dado
+  29:../Sources/Application.c **** 		
+  30:../Sources/Application.c **** 		//Imprime Serial
+  31:../Sources/Application.c **** 	//	cm[0] = (char)((c / 100)+48);
+  32:../Sources/Application.c **** 	//	cm[1] = (char)(((c % 100)/10)+48);
+  33:../Sources/Application.c **** 	//	cm[2] = (char)((c % 10)+48);
+  34:../Sources/Application.c **** 		
+  35:../Sources/Application.c **** 	//	SendString((unsigned char*)"cm:", &deviceData);
+  36:../Sources/Application.c **** 	//	SendChar(cm[0], &deviceData);
+  37:../Sources/Application.c **** 	//	SendChar(cm[1], &deviceData);
+  38:../Sources/Application.c **** 	//	SendChar(cm[2], &deviceData);
+  39:../Sources/Application.c **** 	//	SendString((unsigned char*)"\r\n", &deviceData);
+  40:../Sources/Application.c **** 
+  41:../Sources/Application.c **** 	//	WAIT1_Waitms(500);
+  42:../Sources/Application.c **** 		
+  43:../Sources/Application.c **** 		//re();
+  44:../Sources/Application.c **** 		if(c < 40 && c > 0 && c != 7){
+  45:../Sources/Application.c **** 		//	SendString((unsigned char*)"Mudar Rota\r\n", &deviceData);
+  46:../Sources/Application.c **** 	//		mudaRota();
+  47:../Sources/Application.c **** 		}
+  48:../Sources/Application.c **** 		
+  49:../Sources/Application.c **** 	//	WAIT1_Waitms(50);
+  50:../Sources/Application.c **** //	}
+  51:../Sources/Application.c **** }
+  50              		.loc 1 51 0
+  51 0004 BD46     		mov	sp, r7
+  52              		@ sp needed for prologue
+  53 0006 80BD     		pop	{r7, pc}
+  54              		.cfi_endproc
+  55              	.LFE0:
+  57              		.section	.text.setPasso,"ax",%progbits
+  58              		.align	2
+  59              		.global	setPasso
+  60              		.code	16
+  61              		.thumb_func
+  63              	setPasso:
+  64              	.LFB1:
+  52:../Sources/Application.c **** void setPasso(int p1, int p2, int p3, int p4){
+  65              		.loc 1 52 0
+  66              		.cfi_startproc
+  67 0000 80B5     		push	{r7, lr}
+  68              	.LCFI2:
+  69              		.cfi_def_cfa_offset 8
+  70              		.cfi_offset 7, -8
+  71              		.cfi_offset 14, -4
+  72 0002 84B0     		sub	sp, sp, #16
+  73              	.LCFI3:
+  74              		.cfi_def_cfa_offset 24
+  75 0004 00AF     		add	r7, sp, #0
+  76              	.LCFI4:
+  77              		.cfi_def_cfa_register 7
+  78 0006 F860     		str	r0, [r7, #12]
+  79 0008 B960     		str	r1, [r7, #8]
+  80 000a 7A60     		str	r2, [r7, #4]
+  81 000c 3B60     		str	r3, [r7]
+  53:../Sources/Application.c **** 	P1_PutVal(p1);
+  82              		.loc 1 53 0
+  83 000e 114B     		ldr	r3, .L3
+  84 0010 5A6B     		ldr	r2, [r3, #52]
+  85 0012 FB68     		ldr	r3, [r7, #12]
+  86 0014 DBB2     		uxtb	r3, r3
+  87 0016 101C     		mov	r0, r2
+  88 0018 191C     		mov	r1, r3
+  89 001a FFF7FEFF 		bl	BitIoLdd7_PutVal
+  54:../Sources/Application.c **** 	P2_PutVal(p2);
+  90              		.loc 1 54 0
+  91 001e 0D4B     		ldr	r3, .L3
+  92 0020 9A6B     		ldr	r2, [r3, #56]
+  93 0022 BB68     		ldr	r3, [r7, #8]
+  94 0024 DBB2     		uxtb	r3, r3
+  95 0026 101C     		mov	r0, r2
+  96 0028 191C     		mov	r1, r3
+  97 002a FFF7FEFF 		bl	BitIoLdd8_PutVal
+  55:../Sources/Application.c **** 	P3_PutVal(p3);
+  98              		.loc 1 55 0
+  99 002e 094B     		ldr	r3, .L3
+ 100 0030 DA6B     		ldr	r2, [r3, #60]
+ 101 0032 7B68     		ldr	r3, [r7, #4]
+ 102 0034 DBB2     		uxtb	r3, r3
+ 103 0036 101C     		mov	r0, r2
+ 104 0038 191C     		mov	r1, r3
+ 105 003a FFF7FEFF 		bl	BitIoLdd9_PutVal
+  56:../Sources/Application.c **** 	P4_PutVal(p4);
+ 106              		.loc 1 56 0
+ 107 003e 054B     		ldr	r3, .L3
+ 108 0040 1A6C     		ldr	r2, [r3, #64]
+ 109 0042 3B68     		ldr	r3, [r7]
+ 110 0044 DBB2     		uxtb	r3, r3
+ 111 0046 101C     		mov	r0, r2
+ 112 0048 191C     		mov	r1, r3
+ 113 004a FFF7FEFF 		bl	BitIoLdd10_PutVal
+  57:../Sources/Application.c **** }
+ 114              		.loc 1 57 0
+ 115 004e BD46     		mov	sp, r7
+ 116 0050 04B0     		add	sp, sp, #16
+ 117              		@ sp needed for prologue
+ 118 0052 80BD     		pop	{r7, pc}
+ 119              	.L4:
+ 120              		.align	2
+ 121              	.L3:
+ 122 0054 00000000 		.word	PE_LDD_DeviceDataList
+ 123              		.cfi_endproc
+ 124              	.LFE1:
+ 126              		.section	.text.passos,"ax",%progbits
+ 127              		.align	2
+ 128              		.global	passos
+ 129              		.code	16
+ 130              		.thumb_func
+ 132              	passos:
+ 133              	.LFB2:
+  58:../Sources/Application.c **** 
+  59:../Sources/Application.c **** void passos(){
+ 134              		.loc 1 59 0
+ 135              		.cfi_startproc
+ 136 0000 80B5     		push	{r7, lr}
+ 137              	.LCFI5:
+ 138              		.cfi_def_cfa_offset 8
+ 139              		.cfi_offset 7, -8
+ 140              		.cfi_offset 14, -4
+ 141 0002 00AF     		add	r7, sp, #0
+ 142              	.LCFI6:
+ 143              		.cfi_def_cfa_register 7
+  60:../Sources/Application.c **** 	
+  61:../Sources/Application.c **** 	switch(passo){
+ 144              		.loc 1 61 0
+ 145 0004 154B     		ldr	r3, .L12
+ 146 0006 1B68     		ldr	r3, [r3]
+ 147 0008 012B     		cmp	r3, #1
+ 148 000a 08D0     		beq	.L8
+ 149 000c 02DC     		bgt	.L11
+ 150 000e 002B     		cmp	r3, #0
+ 151 0010 1AD0     		beq	.L7
+ 152 0012 20E0     		b	.L5
+ 153              	.L11:
+ 154 0014 022B     		cmp	r3, #2
+ 155 0016 09D0     		beq	.L9
+ 156 0018 032B     		cmp	r3, #3
+ 157 001a 0ED0     		beq	.L10
+ 158 001c 1BE0     		b	.L5
+ 159              	.L8:
+  62:../Sources/Application.c **** 		case 1:
+  63:../Sources/Application.c **** 			setPasso(1,0,0,0);
+ 160              		.loc 1 63 0
+ 161 001e 0120     		mov	r0, #1
+ 162 0020 0021     		mov	r1, #0
+ 163 0022 0022     		mov	r2, #0
+ 164 0024 0023     		mov	r3, #0
+ 165 0026 FFF7FEFF 		bl	setPasso
+  64:../Sources/Application.c **** 		 	break;
+ 166              		.loc 1 64 0
+ 167 002a 14E0     		b	.L5
+ 168              	.L9:
+  65:../Sources/Application.c **** 		case 2:
+  66:../Sources/Application.c **** 			setPasso(0,1,0,0);
+ 169              		.loc 1 66 0
+ 170 002c 0020     		mov	r0, #0
+ 171 002e 0121     		mov	r1, #1
+ 172 0030 0022     		mov	r2, #0
+ 173 0032 0023     		mov	r3, #0
+ 174 0034 FFF7FEFF 		bl	setPasso
+  67:../Sources/Application.c **** 			break;
+ 175              		.loc 1 67 0
+ 176 0038 0DE0     		b	.L5
+ 177              	.L10:
+  68:../Sources/Application.c **** 		case 3:
+  69:../Sources/Application.c **** 			setPasso(0,0,1,0);
+ 178              		.loc 1 69 0
+ 179 003a 0020     		mov	r0, #0
+ 180 003c 0021     		mov	r1, #0
+ 181 003e 0122     		mov	r2, #1
+ 182 0040 0023     		mov	r3, #0
+ 183 0042 FFF7FEFF 		bl	setPasso
+  70:../Sources/Application.c **** 			break;
+ 184              		.loc 1 70 0
+ 185 0046 06E0     		b	.L5
+ 186              	.L7:
+  71:../Sources/Application.c **** 		case 0:
+  72:../Sources/Application.c **** 			setPasso(0,0,0,1);
+ 187              		.loc 1 72 0
+ 188 0048 0020     		mov	r0, #0
+ 189 004a 0021     		mov	r1, #0
+ 190 004c 0022     		mov	r2, #0
+ 191 004e 0123     		mov	r3, #1
+ 192 0050 FFF7FEFF 		bl	setPasso
+  73:../Sources/Application.c **** 			break;
+ 193              		.loc 1 73 0
+ 194 0054 C046     		mov	r8, r8
+ 195              	.L5:
+  74:../Sources/Application.c **** 	}
+  75:../Sources/Application.c **** }
+ 196              		.loc 1 75 0
+ 197 0056 BD46     		mov	sp, r7
+ 198              		@ sp needed for prologue
+ 199 0058 80BD     		pop	{r7, pc}
+ 200              	.L13:
+ 201 005a C046     		.align	2
+ 202              	.L12:
+ 203 005c 00000000 		.word	passo
+ 204              		.cfi_endproc
+ 205              	.LFE2:
+ 207              		.global	__aeabi_i2d
+ 208              		.global	__aeabi_dsub
+ 209              		.global	__aeabi_d2iz
+ 210              		.global	__aeabi_dadd
+ 211              		.global	__aeabi_dcmpgt
+ 212              		.section	.text.virar,"ax",%progbits
+ 213              		.align	2
+ 214              		.global	virar
+ 215              		.code	16
+ 216              		.thumb_func
+ 218              	virar:
+ 219              	.LFB3:
+  76:../Sources/Application.c **** void virar(int anguloDesejado){
+ 220              		.loc 1 76 0
+ 221              		.cfi_startproc
+ 222 0000 B0B5     		push	{r4, r5, r7, lr}
+ 223              	.LCFI7:
+ 224              		.cfi_def_cfa_offset 16
+ 225              		.cfi_offset 4, -16
+ 226              		.cfi_offset 5, -12
+ 227              		.cfi_offset 7, -8
+ 228              		.cfi_offset 14, -4
+ 229 0002 82B0     		sub	sp, sp, #8
+ 230              	.LCFI8:
+ 231              		.cfi_def_cfa_offset 24
+ 232 0004 00AF     		add	r7, sp, #0
+ 233              	.LCFI9:
+ 234              		.cfi_def_cfa_register 7
+ 235 0006 7860     		str	r0, [r7, #4]
+  77:../Sources/Application.c **** 	
+  78:../Sources/Application.c **** 	while(abs (anguloDesejado - angulo) > 1.5){
+ 236              		.loc 1 78 0
+ 237 0008 4EE0     		b	.L15
+ 238              	.L21:
+  79:../Sources/Application.c **** 		if(anguloDesejado < angulo){
+ 239              		.loc 1 79 0
+ 240 000a 394B     		ldr	r3, .L22+8
+ 241 000c 1B68     		ldr	r3, [r3]
+ 242 000e 7A68     		ldr	r2, [r7, #4]
+ 243 0010 9A42     		cmp	r2, r3
+ 244 0012 22DA     		bge	.L16
+  80:../Sources/Application.c **** 			passo++;
+ 245              		.loc 1 80 0
+ 246 0014 374B     		ldr	r3, .L22+12
+ 247 0016 1B68     		ldr	r3, [r3]
+ 248 0018 5A1C     		add	r2, r3, #1
+ 249 001a 364B     		ldr	r3, .L22+12
+ 250 001c 1A60     		str	r2, [r3]
+  81:../Sources/Application.c **** 			if (passo == 4)
+ 251              		.loc 1 81 0
+ 252 001e 354B     		ldr	r3, .L22+12
+ 253 0020 1B68     		ldr	r3, [r3]
+ 254 0022 042B     		cmp	r3, #4
+ 255 0024 02D1     		bne	.L17
+  82:../Sources/Application.c **** 				passo = 0;
+ 256              		.loc 1 82 0
+ 257 0026 334B     		ldr	r3, .L22+12
+ 258 0028 0022     		mov	r2, #0
+ 259 002a 1A60     		str	r2, [r3]
+ 260              	.L17:
+  83:../Sources/Application.c **** 			angulo -= 1.5;
+ 261              		.loc 1 83 0
+ 262 002c 304B     		ldr	r3, .L22+8
+ 263 002e 1B68     		ldr	r3, [r3]
+ 264 0030 181C     		mov	r0, r3
+ 265 0032 FFF7FEFF 		bl	__aeabi_i2d
+ 266 0036 031C     		mov	r3, r0
+ 267 0038 0C1C     		mov	r4, r1
+ 268 003a 181C     		mov	r0, r3
+ 269 003c 211C     		mov	r1, r4
+ 270 003e 2B4B     		ldr	r3, .L22+4
+ 271 0040 294A     		ldr	r2, .L22
+ 272 0042 FFF7FEFF 		bl	__aeabi_dsub
+ 273 0046 031C     		mov	r3, r0
+ 274 0048 0C1C     		mov	r4, r1
+ 275 004a 181C     		mov	r0, r3
+ 276 004c 211C     		mov	r1, r4
+ 277 004e FFF7FEFF 		bl	__aeabi_d2iz
+ 278 0052 021C     		mov	r2, r0
+ 279 0054 264B     		ldr	r3, .L22+8
+ 280 0056 1A60     		str	r2, [r3]
+ 281 0058 21E0     		b	.L18
+ 282              	.L16:
+  84:../Sources/Application.c **** 		}else{
+  85:../Sources/Application.c **** 			passo--;
+ 283              		.loc 1 85 0
+ 284 005a 264B     		ldr	r3, .L22+12
+ 285 005c 1B68     		ldr	r3, [r3]
+ 286 005e 5A1E     		sub	r2, r3, #1
+ 287 0060 244B     		ldr	r3, .L22+12
+ 288 0062 1A60     		str	r2, [r3]
+  86:../Sources/Application.c **** 			if(passo == -1)
+ 289              		.loc 1 86 0
+ 290 0064 234B     		ldr	r3, .L22+12
+ 291 0066 1B68     		ldr	r3, [r3]
+ 292 0068 0133     		add	r3, r3, #1
+ 293 006a 02D1     		bne	.L19
+  87:../Sources/Application.c **** 				passo = 3;
+ 294              		.loc 1 87 0
+ 295 006c 214B     		ldr	r3, .L22+12
+ 296 006e 0322     		mov	r2, #3
+ 297 0070 1A60     		str	r2, [r3]
+ 298              	.L19:
+  88:../Sources/Application.c **** 			angulo += 1.5;
+ 299              		.loc 1 88 0
+ 300 0072 1F4B     		ldr	r3, .L22+8
+ 301 0074 1B68     		ldr	r3, [r3]
+ 302 0076 181C     		mov	r0, r3
+ 303 0078 FFF7FEFF 		bl	__aeabi_i2d
+ 304 007c 031C     		mov	r3, r0
+ 305 007e 0C1C     		mov	r4, r1
+ 306 0080 181C     		mov	r0, r3
+ 307 0082 211C     		mov	r1, r4
+ 308 0084 194B     		ldr	r3, .L22+4
+ 309 0086 184A     		ldr	r2, .L22
+ 310 0088 FFF7FEFF 		bl	__aeabi_dadd
+ 311 008c 031C     		mov	r3, r0
+ 312 008e 0C1C     		mov	r4, r1
+ 313 0090 181C     		mov	r0, r3
+ 314 0092 211C     		mov	r1, r4
+ 315 0094 FFF7FEFF 		bl	__aeabi_d2iz
+ 316 0098 021C     		mov	r2, r0
+ 317 009a 154B     		ldr	r3, .L22+8
+ 318 009c 1A60     		str	r2, [r3]
+ 319              	.L18:
+  89:../Sources/Application.c **** 		}
+  90:../Sources/Application.c **** 		passos();
+ 320              		.loc 1 90 0
+ 321 009e FFF7FEFF 		bl	passos
+  91:../Sources/Application.c **** 		WAIT1_Waitms(10);
+ 322              		.loc 1 91 0
+ 323 00a2 0A20     		mov	r0, #10
+ 324 00a4 FFF7FEFF 		bl	WAIT1_Waitms
+ 325              	.L15:
+  78:../Sources/Application.c **** 	while(abs (anguloDesejado - angulo) > 1.5){
+ 326              		.loc 1 78 0 discriminator 1
+ 327 00a8 114B     		ldr	r3, .L22+8
+ 328 00aa 1B68     		ldr	r3, [r3]
+ 329 00ac 7A68     		ldr	r2, [r7, #4]
+ 330 00ae D31A     		sub	r3, r2, r3
+ 331 00b0 DA17     		asr	r2, r3, #31
+ 332 00b2 9B18     		add	r3, r3, r2
+ 333 00b4 5340     		eor	r3, r2
+ 334 00b6 181C     		mov	r0, r3
+ 335 00b8 FFF7FEFF 		bl	__aeabi_i2d
+ 336 00bc 031C     		mov	r3, r0
+ 337 00be 0C1C     		mov	r4, r1
+ 338 00c0 0122     		mov	r2, #1
+ 339 00c2 151C     		add	r5, r2, #0
+ 340 00c4 181C     		mov	r0, r3
+ 341 00c6 211C     		mov	r1, r4
+ 342 00c8 084B     		ldr	r3, .L22+4
+ 343 00ca 074A     		ldr	r2, .L22
+ 344 00cc FFF7FEFF 		bl	__aeabi_dcmpgt
+ 345 00d0 031C     		mov	r3, r0
+ 346 00d2 01D1     		bne	.L20
+ 347 00d4 0023     		mov	r3, #0
+ 348 00d6 1D1C     		add	r5, r3, #0
+ 349              	.L20:
+ 350 00d8 EBB2     		uxtb	r3, r5
+ 351 00da 002B     		cmp	r3, #0
+ 352 00dc 95D1     		bne	.L21
+  92:../Sources/Application.c **** 	}
+  93:../Sources/Application.c **** }
+ 353              		.loc 1 93 0
+ 354 00de BD46     		mov	sp, r7
+ 355 00e0 02B0     		add	sp, sp, #8
+ 356              		@ sp needed for prologue
+ 357 00e2 B0BD     		pop	{r4, r5, r7, pc}
+ 358              	.L23:
+ 359 00e4 C046C046 		.align	3
+ 360              	.L22:
+ 361 00e8 00000000 		.word	0
+ 362 00ec 0000F83F 		.word	1073217536
+ 363 00f0 00000000 		.word	angulo
+ 364 00f4 00000000 		.word	passo
+ 365              		.cfi_endproc
+ 366              	.LFE3:
+ 368              		.section	.text.endireitaVolante,"ax",%progbits
+ 369              		.align	2
+ 370              		.global	endireitaVolante
+ 371              		.code	16
+ 372              		.thumb_func
+ 374              	endireitaVolante:
+ 375              	.LFB4:
+  94:../Sources/Application.c **** void endireitaVolante(){
+ 376              		.loc 1 94 0
+ 377              		.cfi_startproc
+ 378 0000 80B5     		push	{r7, lr}
+ 379              	.LCFI10:
+ 380              		.cfi_def_cfa_offset 8
+ 381              		.cfi_offset 7, -8
+ 382              		.cfi_offset 14, -4
+ 383 0002 00AF     		add	r7, sp, #0
+ 384              	.LCFI11:
+ 385              		.cfi_def_cfa_register 7
+  95:../Sources/Application.c **** 	LEDpin4_PutVal(0); 
+ 386              		.loc 1 95 0
+ 387 0004 064B     		ldr	r3, .L25
+ 388 0006 9B6A     		ldr	r3, [r3, #40]
+ 389 0008 181C     		mov	r0, r3
+ 390 000a 0021     		mov	r1, #0
+ 391 000c FFF7FEFF 		bl	BitIoLdd5_PutVal
+  96:../Sources/Application.c **** 	LEDpin5_PutVal(0);
+ 392              		.loc 1 96 0
+ 393 0010 034B     		ldr	r3, .L25
+ 394 0012 DB6A     		ldr	r3, [r3, #44]
+ 395 0014 181C     		mov	r0, r3
+ 396 0016 0021     		mov	r1, #0
+ 397 0018 FFF7FEFF 		bl	BitIoLdd6_PutVal
+  97:../Sources/Application.c **** 	//angulo = passo = 0;
+  98:../Sources/Application.c **** }
+ 398              		.loc 1 98 0
+ 399 001c BD46     		mov	sp, r7
+ 400              		@ sp needed for prologue
+ 401 001e 80BD     		pop	{r7, pc}
+ 402              	.L26:
+ 403              		.align	2
+ 404              	.L25:
+ 405 0020 00000000 		.word	PE_LDD_DeviceDataList
+ 406              		.cfi_endproc
+ 407              	.LFE4:
+ 409              		.section	.text.re,"ax",%progbits
+ 410              		.align	2
+ 411              		.global	re
+ 412              		.code	16
+ 413              		.thumb_func
+ 415              	re:
+ 416              	.LFB5:
+  99:../Sources/Application.c **** void re(){
+ 417              		.loc 1 99 0
+ 418              		.cfi_startproc
+ 419 0000 80B5     		push	{r7, lr}
+ 420              	.LCFI12:
+ 421              		.cfi_def_cfa_offset 8
+ 422              		.cfi_offset 7, -8
+ 423              		.cfi_offset 14, -4
+ 424 0002 00AF     		add	r7, sp, #0
+ 425              	.LCFI13:
+ 426              		.cfi_def_cfa_register 7
+ 100:../Sources/Application.c **** 	(void)Inhr1_SetRatio8(0);
+ 427              		.loc 1 100 0
+ 428 0004 064B     		ldr	r3, .L28
+ 429 0006 9B69     		ldr	r3, [r3, #24]
+ 430 0008 181C     		mov	r0, r3
+ 431 000a 0021     		mov	r1, #0
+ 432 000c FFF7FEFF 		bl	PwmLdd1_SetRatio8
+ 101:../Sources/Application.c **** 	(void)Inhr2_SetRatio8(100);
+ 433              		.loc 1 101 0
+ 434 0010 034B     		ldr	r3, .L28
+ 435 0012 5B6A     		ldr	r3, [r3, #36]
+ 436 0014 181C     		mov	r0, r3
+ 437 0016 6421     		mov	r1, #100
+ 438 0018 FFF7FEFF 		bl	PwmLdd2_SetRatio8
+ 102:../Sources/Application.c **** }
+ 439              		.loc 1 102 0
+ 440 001c BD46     		mov	sp, r7
+ 441              		@ sp needed for prologue
+ 442 001e 80BD     		pop	{r7, pc}
+ 443              	.L29:
+ 444              		.align	2
+ 445              	.L28:
+ 446 0020 00000000 		.word	PE_LDD_DeviceDataList
+ 447              		.cfi_endproc
+ 448              	.LFE5:
+ 450              		.section	.text.aceleracao,"ax",%progbits
+ 451              		.align	2
+ 452              		.global	aceleracao
+ 453              		.code	16
+ 454              		.thumb_func
+ 456              	aceleracao:
+ 457              	.LFB6:
+ 103:../Sources/Application.c **** void aceleracao(){
+ 458              		.loc 1 103 0
+ 459              		.cfi_startproc
+ 460 0000 80B5     		push	{r7, lr}
+ 461              	.LCFI14:
+ 462              		.cfi_def_cfa_offset 8
+ 463              		.cfi_offset 7, -8
+ 464              		.cfi_offset 14, -4
+ 465 0002 00AF     		add	r7, sp, #0
+ 466              	.LCFI15:
+ 467              		.cfi_def_cfa_register 7
+ 104:../Sources/Application.c **** 	(void)Inhr2_SetRatio8(0);
+ 468              		.loc 1 104 0
+ 469 0004 064B     		ldr	r3, .L31
+ 470 0006 5B6A     		ldr	r3, [r3, #36]
+ 471 0008 181C     		mov	r0, r3
+ 472 000a 0021     		mov	r1, #0
+ 473 000c FFF7FEFF 		bl	PwmLdd2_SetRatio8
+ 105:../Sources/Application.c **** 	(void)Inhr1_SetRatio8(50);
+ 474              		.loc 1 105 0
+ 475 0010 034B     		ldr	r3, .L31
+ 476 0012 9B69     		ldr	r3, [r3, #24]
+ 477 0014 181C     		mov	r0, r3
+ 478 0016 3221     		mov	r1, #50
+ 479 0018 FFF7FEFF 		bl	PwmLdd1_SetRatio8
+ 106:../Sources/Application.c **** }
+ 480              		.loc 1 106 0
+ 481 001c BD46     		mov	sp, r7
+ 482              		@ sp needed for prologue
+ 483 001e 80BD     		pop	{r7, pc}
+ 484              	.L32:
+ 485              		.align	2
+ 486              	.L31:
+ 487 0020 00000000 		.word	PE_LDD_DeviceDataList
+ 488              		.cfi_endproc
+ 489              	.LFE6:
+ 491              		.section	.text.mudaRota,"ax",%progbits
+ 492              		.align	2
+ 493              		.global	mudaRota
+ 494              		.code	16
+ 495              		.thumb_func
+ 497              	mudaRota:
+ 498              	.LFB7:
+ 107:../Sources/Application.c **** void mudaRota(){
+ 499              		.loc 1 107 0
+ 500              		.cfi_startproc
+ 501 0000 80B5     		push	{r7, lr}
+ 502              	.LCFI16:
+ 503              		.cfi_def_cfa_offset 8
+ 504              		.cfi_offset 7, -8
+ 505              		.cfi_offset 14, -4
+ 506 0002 00AF     		add	r7, sp, #0
+ 507              	.LCFI17:
+ 508              		.cfi_def_cfa_register 7
+ 108:../Sources/Application.c **** 	(void)Inhr2_SetRatio8(0);
+ 509              		.loc 1 108 0
+ 510 0004 144B     		ldr	r3, .L34
+ 511 0006 5B6A     		ldr	r3, [r3, #36]
+ 512 0008 181C     		mov	r0, r3
+ 513 000a 0021     		mov	r1, #0
+ 514 000c FFF7FEFF 		bl	PwmLdd2_SetRatio8
+ 109:../Sources/Application.c **** 	(void)Inhr1_SetRatio8(0);
+ 515              		.loc 1 109 0
+ 516 0010 114B     		ldr	r3, .L34
+ 517 0012 9B69     		ldr	r3, [r3, #24]
+ 518 0014 181C     		mov	r0, r3
+ 519 0016 0021     		mov	r1, #0
+ 520 0018 FFF7FEFF 		bl	PwmLdd1_SetRatio8
+ 110:../Sources/Application.c **** 	WAIT1_Waitms(500);
+ 521              		.loc 1 110 0
+ 522 001c FA23     		mov	r3, #250
+ 523 001e 5B00     		lsl	r3, r3, #1
+ 524 0020 181C     		mov	r0, r3
+ 525 0022 FFF7FEFF 		bl	WAIT1_Waitms
+ 111:../Sources/Application.c **** 	virar(20);
+ 526              		.loc 1 111 0
+ 527 0026 1420     		mov	r0, #20
+ 528 0028 FFF7FEFF 		bl	virar
+ 112:../Sources/Application.c **** 	re();
+ 529              		.loc 1 112 0
+ 530 002c FFF7FEFF 		bl	re
+ 113:../Sources/Application.c **** 	WAIT1_Waitms(500);
+ 531              		.loc 1 113 0
+ 532 0030 FA23     		mov	r3, #250
+ 533 0032 5B00     		lsl	r3, r3, #1
+ 534 0034 181C     		mov	r0, r3
+ 535 0036 FFF7FEFF 		bl	WAIT1_Waitms
+ 114:../Sources/Application.c **** 	aceleracao();
+ 536              		.loc 1 114 0
+ 537 003a FFF7FEFF 		bl	aceleracao
+ 115:../Sources/Application.c **** 	WAIT1_Waitms(40);
+ 538              		.loc 1 115 0
+ 539 003e 2820     		mov	r0, #40
+ 540 0040 FFF7FEFF 		bl	WAIT1_Waitms
+ 116:../Sources/Application.c **** 	endireitaVolante();
+ 541              		.loc 1 116 0
+ 542 0044 FFF7FEFF 		bl	endireitaVolante
+ 117:../Sources/Application.c **** 	virar(-20);
+ 543              		.loc 1 117 0
+ 544 0048 1423     		mov	r3, #20
+ 545 004a 5B42     		neg	r3, r3
+ 546 004c 181C     		mov	r0, r3
+ 547 004e FFF7FEFF 		bl	virar
+ 118:../Sources/Application.c **** }
+ 548              		.loc 1 118 0
+ 549 0052 BD46     		mov	sp, r7
+ 550              		@ sp needed for prologue
+ 551 0054 80BD     		pop	{r7, pc}
+ 552              	.L35:
+ 553 0056 C046     		.align	2
+ 554              	.L34:
+ 555 0058 00000000 		.word	PE_LDD_DeviceDataList
+ 556              		.cfi_endproc
+ 557              	.LFE7:
+ 559              		.text
+ 560              	.Letext0:
+ 561              		.file 2 "C:/Users/LARM/workspace/MQX-Lite + SPI + Motor + Ultrassom/Generated_Code/PE_LDD.h"
+ 562              		.file 3 "C:/Freescale/CW MCU v10.3/MCU/ARM_GCC_Support/ewl/EWL_C/include/cstdint"
+ 563              		.file 4 "C:/Users/LARM/workspace/MQX-Lite + SPI + Motor + Ultrassom/Generated_Code/IO_Map.h"
+ 564              		.file 5 "<built-in>"
+DEFINED SYMBOLS
+                            *ABS*:00000000 Application.c
+C:\Users\LARM\AppData\Local\Temp\ccVz0kUV.s:22     .bss.passo:00000000 passo
+C:\Users\LARM\AppData\Local\Temp\ccVz0kUV.s:19     .bss.passo:00000000 $d
+C:\Users\LARM\AppData\Local\Temp\ccVz0kUV.s:29     .bss.angulo:00000000 angulo
+C:\Users\LARM\AppData\Local\Temp\ccVz0kUV.s:26     .bss.angulo:00000000 $d
+C:\Users\LARM\AppData\Local\Temp\ccVz0kUV.s:32     .text.APP_Run:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\ccVz0kUV.s:37     .text.APP_Run:00000000 APP_Run
+C:\Users\LARM\AppData\Local\Temp\ccVz0kUV.s:58     .text.setPasso:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\ccVz0kUV.s:63     .text.setPasso:00000000 setPasso
+C:\Users\LARM\AppData\Local\Temp\ccVz0kUV.s:122    .text.setPasso:00000054 $d
+C:\Users\LARM\AppData\Local\Temp\ccVz0kUV.s:127    .text.passos:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\ccVz0kUV.s:132    .text.passos:00000000 passos
+C:\Users\LARM\AppData\Local\Temp\ccVz0kUV.s:203    .text.passos:0000005c $d
+C:\Users\LARM\AppData\Local\Temp\ccVz0kUV.s:213    .text.virar:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\ccVz0kUV.s:218    .text.virar:00000000 virar
+C:\Users\LARM\AppData\Local\Temp\ccVz0kUV.s:361    .text.virar:000000e8 $d
+C:\Users\LARM\AppData\Local\Temp\ccVz0kUV.s:369    .text.endireitaVolante:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\ccVz0kUV.s:374    .text.endireitaVolante:00000000 endireitaVolante
+C:\Users\LARM\AppData\Local\Temp\ccVz0kUV.s:405    .text.endireitaVolante:00000020 $d
+C:\Users\LARM\AppData\Local\Temp\ccVz0kUV.s:410    .text.re:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\ccVz0kUV.s:415    .text.re:00000000 re
+C:\Users\LARM\AppData\Local\Temp\ccVz0kUV.s:446    .text.re:00000020 $d
+C:\Users\LARM\AppData\Local\Temp\ccVz0kUV.s:451    .text.aceleracao:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\ccVz0kUV.s:456    .text.aceleracao:00000000 aceleracao
+C:\Users\LARM\AppData\Local\Temp\ccVz0kUV.s:487    .text.aceleracao:00000020 $d
+C:\Users\LARM\AppData\Local\Temp\ccVz0kUV.s:492    .text.mudaRota:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\ccVz0kUV.s:497    .text.mudaRota:00000000 mudaRota
+C:\Users\LARM\AppData\Local\Temp\ccVz0kUV.s:555    .text.mudaRota:00000058 $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+BitIoLdd7_PutVal
+BitIoLdd8_PutVal
+BitIoLdd9_PutVal
+BitIoLdd10_PutVal
+PE_LDD_DeviceDataList
+__aeabi_i2d
+__aeabi_dsub
+__aeabi_d2iz
+__aeabi_dadd
+__aeabi_dcmpgt
+WAIT1_Waitms
+BitIoLdd5_PutVal
+BitIoLdd6_PutVal
+PwmLdd1_SetRatio8
+PwmLdd2_SetRatio8

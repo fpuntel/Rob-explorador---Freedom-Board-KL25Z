@@ -1,0 +1,910 @@
+   1              		.cpu cortex-m0
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 34, 0
+  11              		.eabi_attribute 18, 4
+  12              		.code	16
+  13              		.file	"Ultrasonico.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.bss.usDevice,"aw",%nobits
+  18              		.align	2
+  21              	usDevice:
+  22 0000 00000000 		.space	16
+  22      00000000 
+  22      00000000 
+  22      00000000 
+  23              		.section	.bss.usDevice2,"aw",%nobits
+  24              		.align	2
+  27              	usDevice2:
+  28 0000 00000000 		.space	16
+  28      00000000 
+  28      00000000 
+  28      00000000 
+  29              		.section	.text.inicioUltrasonico,"ax",%progbits
+  30              		.align	2
+  31              		.global	inicioUltrasonico
+  32              		.code	16
+  33              		.thumb_func
+  35              	inicioUltrasonico:
+  36              	.LFB0:
+  37              		.file 1 "../Sources/Ultrasonico.c"
+   1:../Sources/Ultrasonico.c **** /*
+   2:../Sources/Ultrasonico.c ****  * Ultrasonico.c
+   3:../Sources/Ultrasonico.c ****  *
+   4:../Sources/Ultrasonico.c ****  *  Created on: Jul 16, 2013
+   5:../Sources/Ultrasonico.c ****  *      Author: LARM
+   6:../Sources/Ultrasonico.c ****  */
+   7:../Sources/Ultrasonico.c **** #include "Application.h"
+   8:../Sources/Ultrasonico.c **** 
+   9:../Sources/Ultrasonico.c **** static US_DeviceType usDevice;  //Ultrasonico 
+  10:../Sources/Ultrasonico.c **** static US_DeviceType usDevice2;  //Ultrasonico2 
+  11:../Sources/Ultrasonico.c **** 
+  12:../Sources/Ultrasonico.c **** void inicioUltrasonico(void)
+  13:../Sources/Ultrasonico.c **** {
+  38              		.loc 1 13 0
+  39              		.cfi_startproc
+  40 0000 80B5     		push	{r7, lr}
+  41              	.LCFI0:
+  42              		.cfi_def_cfa_offset 8
+  43              		.cfi_offset 7, -8
+  44              		.cfi_offset 14, -4
+  45 0002 00AF     		add	r7, sp, #0
+  46              	.LCFI1:
+  47              		.cfi_def_cfa_register 7
+  14:../Sources/Ultrasonico.c **** 	usDevice.state = ECHO_IDLE;
+  48              		.loc 1 14 0
+  49 0004 0A4B     		ldr	r3, .L2
+  50 0006 0022     		mov	r2, #0
+  51 0008 1A72     		strb	r2, [r3, #8]
+  15:../Sources/Ultrasonico.c **** 	usDevice.capture = 0;
+  52              		.loc 1 15 0
+  53 000a 094B     		ldr	r3, .L2
+  54 000c 0022     		mov	r2, #0
+  55 000e DA60     		str	r2, [r3, #12]
+  16:../Sources/Ultrasonico.c **** 	usDevice.trigDevice = TRIG_Init(NULL);
+  56              		.loc 1 16 0
+  57 0010 0020     		mov	r0, #0
+  58 0012 FFF7FEFF 		bl	TRIG_Init
+  59 0016 021C     		mov	r2, r0
+  60 0018 054B     		ldr	r3, .L2
+  61 001a 1A60     		str	r2, [r3]
+  17:../Sources/Ultrasonico.c **** 	usDevice.echoDevice = TU1_Init(&usDevice);
+  62              		.loc 1 17 0
+  63 001c 044B     		ldr	r3, .L2
+  64 001e 181C     		mov	r0, r3
+  65 0020 FFF7FEFF 		bl	TU1_Init
+  66 0024 021C     		mov	r2, r0
+  67 0026 024B     		ldr	r3, .L2
+  68 0028 5A60     		str	r2, [r3, #4]
+  18:../Sources/Ultrasonico.c **** }
+  69              		.loc 1 18 0
+  70 002a BD46     		mov	sp, r7
+  71              		@ sp needed for prologue
+  72 002c 80BD     		pop	{r7, pc}
+  73              	.L3:
+  74 002e C046     		.align	2
+  75              	.L2:
+  76 0030 00000000 		.word	usDevice
+  77              		.cfi_endproc
+  78              	.LFE0:
+  80              		.section	.text.inicioUltrasonico2,"ax",%progbits
+  81              		.align	2
+  82              		.global	inicioUltrasonico2
+  83              		.code	16
+  84              		.thumb_func
+  86              	inicioUltrasonico2:
+  87              	.LFB1:
+  19:../Sources/Ultrasonico.c **** void inicioUltrasonico2(void)
+  20:../Sources/Ultrasonico.c **** {
+  88              		.loc 1 20 0
+  89              		.cfi_startproc
+  90 0000 80B5     		push	{r7, lr}
+  91              	.LCFI2:
+  92              		.cfi_def_cfa_offset 8
+  93              		.cfi_offset 7, -8
+  94              		.cfi_offset 14, -4
+  95 0002 00AF     		add	r7, sp, #0
+  96              	.LCFI3:
+  97              		.cfi_def_cfa_register 7
+  21:../Sources/Ultrasonico.c **** 	usDevice2.state = ECHO_IDLE;
+  98              		.loc 1 21 0
+  99 0004 0A4B     		ldr	r3, .L5
+ 100 0006 0022     		mov	r2, #0
+ 101 0008 1A72     		strb	r2, [r3, #8]
+  22:../Sources/Ultrasonico.c **** 	usDevice2.capture = 0;
+ 102              		.loc 1 22 0
+ 103 000a 094B     		ldr	r3, .L5
+ 104 000c 0022     		mov	r2, #0
+ 105 000e DA60     		str	r2, [r3, #12]
+  23:../Sources/Ultrasonico.c **** 	usDevice2.trigDevice = TRIG2_Init(NULL);
+ 106              		.loc 1 23 0
+ 107 0010 0020     		mov	r0, #0
+ 108 0012 FFF7FEFF 		bl	TRIG2_Init
+ 109 0016 021C     		mov	r2, r0
+ 110 0018 054B     		ldr	r3, .L5
+ 111 001a 1A60     		str	r2, [r3]
+  24:../Sources/Ultrasonico.c **** 	usDevice2.echoDevice = TU1_Init(&usDevice2);
+ 112              		.loc 1 24 0
+ 113 001c 044B     		ldr	r3, .L5
+ 114 001e 181C     		mov	r0, r3
+ 115 0020 FFF7FEFF 		bl	TU1_Init
+ 116 0024 021C     		mov	r2, r0
+ 117 0026 024B     		ldr	r3, .L5
+ 118 0028 5A60     		str	r2, [r3, #4]
+  25:../Sources/Ultrasonico.c **** }
+ 119              		.loc 1 25 0
+ 120 002a BD46     		mov	sp, r7
+ 121              		@ sp needed for prologue
+ 122 002c 80BD     		pop	{r7, pc}
+ 123              	.L6:
+ 124 002e C046     		.align	2
+ 125              	.L5:
+ 126 0030 00000000 		.word	usDevice2
+ 127              		.cfi_endproc
+ 128              	.LFE1:
+ 130              		.section	.rodata
+ 131              		.align	2
+ 132              	.LC3:
+ 133 0000 3000     		.ascii	"0\000"
+ 134              		.global	__aeabi_uidiv
+ 135              		.section	.text.tUltrasonico,"ax",%progbits
+ 136              		.align	2
+ 137              		.global	tUltrasonico
+ 138              		.code	16
+ 139              		.thumb_func
+ 141              	tUltrasonico:
+ 142              	.LFB2:
+  26:../Sources/Ultrasonico.c **** 
+  27:../Sources/Ultrasonico.c **** /* Retorna o tempo*/
+  28:../Sources/Ultrasonico.c **** uint16_t tUltrasonico(void){
+ 143              		.loc 1 28 0
+ 144              		.cfi_startproc
+ 145 0000 80B5     		push	{r7, lr}
+ 146              	.LCFI4:
+ 147              		.cfi_def_cfa_offset 8
+ 148              		.cfi_offset 7, -8
+ 149              		.cfi_offset 14, -4
+ 150 0002 82B0     		sub	sp, sp, #8
+ 151              	.LCFI5:
+ 152              		.cfi_def_cfa_offset 16
+ 153 0004 00AF     		add	r7, sp, #0
+ 154              	.LCFI6:
+ 155              		.cfi_def_cfa_register 7
+  29:../Sources/Ultrasonico.c **** 	uint16_t us;
+  30:../Sources/Ultrasonico.c **** 	
+  31:../Sources/Ultrasonico.c **** 	usDevice.echoDevice = TU1_Init(&usDevice);
+ 156              		.loc 1 31 0
+ 157 0006 1F4B     		ldr	r3, .L11
+ 158 0008 181C     		mov	r0, r3
+ 159 000a FFF7FEFF 		bl	TU1_Init
+ 160 000e 021C     		mov	r2, r0
+ 161 0010 1C4B     		ldr	r3, .L11
+ 162 0012 5A60     		str	r2, [r3, #4]
+  32:../Sources/Ultrasonico.c **** 	
+  33:../Sources/Ultrasonico.c **** 	/*Manda pulso 10us na TRIG*/
+  34:../Sources/Ultrasonico.c **** 	TRIG_SetVal(usDevice.trigDevice);
+ 163              		.loc 1 34 0
+ 164 0014 1B4B     		ldr	r3, .L11
+ 165 0016 1B68     		ldr	r3, [r3]
+ 166 0018 181C     		mov	r0, r3
+ 167 001a FFF7FEFF 		bl	TRIG_SetVal
+  35:../Sources/Ultrasonico.c **** 	WAIT1_Waitus(10);
+ 168              		.loc 1 35 0
+ 169 001e C820     		mov	r0, #200
+ 170 0020 FFF7FEFF 		bl	WAIT1_WaitCycles
+  36:../Sources/Ultrasonico.c **** 	usDevice.state = ECHO_TRIGGERED;
+ 171              		.loc 1 36 0
+ 172 0024 174B     		ldr	r3, .L11
+ 173 0026 0122     		mov	r2, #1
+ 174 0028 1A72     		strb	r2, [r3, #8]
+  37:../Sources/Ultrasonico.c **** 	TRIG_ClrVal(usDevice.trigDevice);
+ 175              		.loc 1 37 0
+ 176 002a 164B     		ldr	r3, .L11
+ 177 002c 1B68     		ldr	r3, [r3]
+ 178 002e 181C     		mov	r0, r3
+ 179 0030 FFF7FEFF 		bl	TRIG_ClrVal
+  38:../Sources/Ultrasonico.c **** 	while(usDevice.state != ECHO_FINISHED){
+ 180              		.loc 1 38 0
+ 181 0034 0DE0     		b	.L8
+ 182              	.L10:
+  39:../Sources/Ultrasonico.c **** 		if(usDevice.state == ECHO_OVERFLOW){
+ 183              		.loc 1 39 0
+ 184 0036 134B     		ldr	r3, .L11
+ 185 0038 1B7A     		ldrb	r3, [r3, #8]
+ 186 003a DBB2     		uxtb	r3, r3
+ 187 003c 032B     		cmp	r3, #3
+ 188 003e 08D1     		bne	.L8
+ 189              	.LBB2:
+  40:../Sources/Ultrasonico.c **** 			mString("0");
+ 190              		.loc 1 40 0
+ 191 0040 114B     		ldr	r3, .L11+4
+ 192 0042 181C     		mov	r0, r3
+ 193 0044 FFF7FEFF 		bl	mString
+  41:../Sources/Ultrasonico.c **** 			usDevice.state = ECHO_IDLE;
+ 194              		.loc 1 41 0
+ 195 0048 0E4B     		ldr	r3, .L11
+ 196 004a 0022     		mov	r2, #0
+ 197 004c 1A72     		strb	r2, [r3, #8]
+  42:../Sources/Ultrasonico.c **** 			return 0; /*ERRO*/
+ 198              		.loc 1 42 0
+ 199 004e 0023     		mov	r3, #0
+ 200 0050 13E0     		b	.L9
+ 201              	.L8:
+ 202              	.LBE2:
+  38:../Sources/Ultrasonico.c **** 	while(usDevice.state != ECHO_FINISHED){
+ 203              		.loc 1 38 0 discriminator 1
+ 204 0052 0C4B     		ldr	r3, .L11
+ 205 0054 1B7A     		ldrb	r3, [r3, #8]
+ 206 0056 DBB2     		uxtb	r3, r3
+ 207 0058 042B     		cmp	r3, #4
+ 208 005a ECD1     		bne	.L10
+  43:../Sources/Ultrasonico.c **** 		}
+  44:../Sources/Ultrasonico.c **** 	}
+  45:../Sources/Ultrasonico.c **** 	us = (usDevice.capture*1000UL)/(TU1_CNT_INP_FREQ_U_0/1000);
+ 209              		.loc 1 45 0
+ 210 005c 094B     		ldr	r3, .L11
+ 211 005e DB68     		ldr	r3, [r3, #12]
+ 212 0060 FA22     		mov	r2, #250
+ 213 0062 9200     		lsl	r2, r2, #2
+ 214 0064 5343     		mul	r3, r2
+ 215 0066 181C     		mov	r0, r3
+ 216 0068 0849     		ldr	r1, .L11+8
+ 217 006a FFF7FEFF 		bl	__aeabi_uidiv
+ 218 006e 031C     		mov	r3, r0
+ 219 0070 1A1C     		mov	r2, r3
+ 220 0072 BB1D     		add	r3, r7, #6
+ 221 0074 1A80     		strh	r2, [r3]
+  46:../Sources/Ultrasonico.c **** 	return us;
+ 222              		.loc 1 46 0
+ 223 0076 BB1D     		add	r3, r7, #6
+ 224 0078 1B88     		ldrh	r3, [r3]
+ 225              	.L9:
+  47:../Sources/Ultrasonico.c **** }
+ 226              		.loc 1 47 0
+ 227 007a 181C     		mov	r0, r3
+ 228 007c BD46     		mov	sp, r7
+ 229 007e 02B0     		add	sp, sp, #8
+ 230              		@ sp needed for prologue
+ 231 0080 80BD     		pop	{r7, pc}
+ 232              	.L12:
+ 233 0082 C046     		.align	2
+ 234              	.L11:
+ 235 0084 00000000 		.word	usDevice
+ 236 0088 00000000 		.word	.LC3
+ 237 008c 3D0A0000 		.word	2621
+ 238              		.cfi_endproc
+ 239              	.LFE2:
+ 241              		.section	.rodata
+ 242 0002 0000     		.align	2
+ 243              	.LC6:
+ 244 0004 3200     		.ascii	"2\000"
+ 245 0006 0000     		.section	.text.tUltrasonico2,"ax",%progbits
+ 246              		.align	2
+ 247              		.global	tUltrasonico2
+ 248              		.code	16
+ 249              		.thumb_func
+ 251              	tUltrasonico2:
+ 252              	.LFB3:
+  48:../Sources/Ultrasonico.c **** 
+  49:../Sources/Ultrasonico.c **** uint16_t tUltrasonico2(void){
+ 253              		.loc 1 49 0
+ 254              		.cfi_startproc
+ 255 0000 80B5     		push	{r7, lr}
+ 256              	.LCFI7:
+ 257              		.cfi_def_cfa_offset 8
+ 258              		.cfi_offset 7, -8
+ 259              		.cfi_offset 14, -4
+ 260 0002 82B0     		sub	sp, sp, #8
+ 261              	.LCFI8:
+ 262              		.cfi_def_cfa_offset 16
+ 263 0004 00AF     		add	r7, sp, #0
+ 264              	.LCFI9:
+ 265              		.cfi_def_cfa_register 7
+  50:../Sources/Ultrasonico.c **** 	uint16_t us;
+  51:../Sources/Ultrasonico.c **** 	
+  52:../Sources/Ultrasonico.c **** 	usDevice2.echoDevice = TU1_Init(&usDevice2);
+ 266              		.loc 1 52 0
+ 267 0006 1F4B     		ldr	r3, .L17
+ 268 0008 181C     		mov	r0, r3
+ 269 000a FFF7FEFF 		bl	TU1_Init
+ 270 000e 021C     		mov	r2, r0
+ 271 0010 1C4B     		ldr	r3, .L17
+ 272 0012 5A60     		str	r2, [r3, #4]
+  53:../Sources/Ultrasonico.c **** 	
+  54:../Sources/Ultrasonico.c **** 	/*Manda pulso 10us na TRIG*/
+  55:../Sources/Ultrasonico.c **** 	TRIG2_SetVal(usDevice2.trigDevice);
+ 273              		.loc 1 55 0
+ 274 0014 1B4B     		ldr	r3, .L17
+ 275 0016 1B68     		ldr	r3, [r3]
+ 276 0018 181C     		mov	r0, r3
+ 277 001a FFF7FEFF 		bl	TRIG2_SetVal
+  56:../Sources/Ultrasonico.c **** 	WAIT1_Waitus(10);
+ 278              		.loc 1 56 0
+ 279 001e C820     		mov	r0, #200
+ 280 0020 FFF7FEFF 		bl	WAIT1_WaitCycles
+  57:../Sources/Ultrasonico.c **** 	usDevice2.state = ECHO_TRIGGERED;
+ 281              		.loc 1 57 0
+ 282 0024 174B     		ldr	r3, .L17
+ 283 0026 0122     		mov	r2, #1
+ 284 0028 1A72     		strb	r2, [r3, #8]
+  58:../Sources/Ultrasonico.c **** 	TRIG2_ClrVal(usDevice2.trigDevice);
+ 285              		.loc 1 58 0
+ 286 002a 164B     		ldr	r3, .L17
+ 287 002c 1B68     		ldr	r3, [r3]
+ 288 002e 181C     		mov	r0, r3
+ 289 0030 FFF7FEFF 		bl	TRIG2_ClrVal
+  59:../Sources/Ultrasonico.c **** 	while(usDevice2.state != ECHO_FINISHED){
+ 290              		.loc 1 59 0
+ 291 0034 0DE0     		b	.L14
+ 292              	.L16:
+  60:../Sources/Ultrasonico.c **** 		if(usDevice2.state == ECHO_OVERFLOW){
+ 293              		.loc 1 60 0
+ 294 0036 134B     		ldr	r3, .L17
+ 295 0038 1B7A     		ldrb	r3, [r3, #8]
+ 296 003a DBB2     		uxtb	r3, r3
+ 297 003c 032B     		cmp	r3, #3
+ 298 003e 08D1     		bne	.L14
+ 299              	.LBB3:
+  61:../Sources/Ultrasonico.c **** 			mString("2");
+ 300              		.loc 1 61 0
+ 301 0040 114B     		ldr	r3, .L17+4
+ 302 0042 181C     		mov	r0, r3
+ 303 0044 FFF7FEFF 		bl	mString
+  62:../Sources/Ultrasonico.c **** 			usDevice2.state = ECHO_IDLE;
+ 304              		.loc 1 62 0
+ 305 0048 0E4B     		ldr	r3, .L17
+ 306 004a 0022     		mov	r2, #0
+ 307 004c 1A72     		strb	r2, [r3, #8]
+  63:../Sources/Ultrasonico.c **** 			return 0; /*ERRO*/
+ 308              		.loc 1 63 0
+ 309 004e 0023     		mov	r3, #0
+ 310 0050 13E0     		b	.L15
+ 311              	.L14:
+ 312              	.LBE3:
+  59:../Sources/Ultrasonico.c **** 	while(usDevice2.state != ECHO_FINISHED){
+ 313              		.loc 1 59 0 discriminator 1
+ 314 0052 0C4B     		ldr	r3, .L17
+ 315 0054 1B7A     		ldrb	r3, [r3, #8]
+ 316 0056 DBB2     		uxtb	r3, r3
+ 317 0058 042B     		cmp	r3, #4
+ 318 005a ECD1     		bne	.L16
+  64:../Sources/Ultrasonico.c **** 		}
+  65:../Sources/Ultrasonico.c **** 	}
+  66:../Sources/Ultrasonico.c **** 	us = (usDevice2.capture*1000UL)/(TU1_CNT_INP_FREQ_U_0/1000);
+ 319              		.loc 1 66 0
+ 320 005c 094B     		ldr	r3, .L17
+ 321 005e DB68     		ldr	r3, [r3, #12]
+ 322 0060 FA22     		mov	r2, #250
+ 323 0062 9200     		lsl	r2, r2, #2
+ 324 0064 5343     		mul	r3, r2
+ 325 0066 181C     		mov	r0, r3
+ 326 0068 0849     		ldr	r1, .L17+8
+ 327 006a FFF7FEFF 		bl	__aeabi_uidiv
+ 328 006e 031C     		mov	r3, r0
+ 329 0070 1A1C     		mov	r2, r3
+ 330 0072 BB1D     		add	r3, r7, #6
+ 331 0074 1A80     		strh	r2, [r3]
+  67:../Sources/Ultrasonico.c **** 	return us;
+ 332              		.loc 1 67 0
+ 333 0076 BB1D     		add	r3, r7, #6
+ 334 0078 1B88     		ldrh	r3, [r3]
+ 335              	.L15:
+  68:../Sources/Ultrasonico.c **** }
+ 336              		.loc 1 68 0
+ 337 007a 181C     		mov	r0, r3
+ 338 007c BD46     		mov	sp, r7
+ 339 007e 02B0     		add	sp, sp, #8
+ 340              		@ sp needed for prologue
+ 341 0080 80BD     		pop	{r7, pc}
+ 342              	.L18:
+ 343 0082 C046     		.align	2
+ 344              	.L17:
+ 345 0084 00000000 		.word	usDevice2
+ 346 0088 04000000 		.word	.LC6
+ 347 008c 3D0A0000 		.word	2621
+ 348              		.cfi_endproc
+ 349              	.LFE3:
+ 351              		.section	.text.US_EventEchoCapture,"ax",%progbits
+ 352              		.align	2
+ 353              		.global	US_EventEchoCapture
+ 354              		.code	16
+ 355              		.thumb_func
+ 357              	US_EventEchoCapture:
+ 358              	.LFB4:
+  69:../Sources/Ultrasonico.c **** 
+  70:../Sources/Ultrasonico.c **** void US_EventEchoCapture(LDD_TUserData *UserDataPtr) {
+ 359              		.loc 1 70 0
+ 360              		.cfi_startproc
+ 361 0000 80B5     		push	{r7, lr}
+ 362              	.LCFI10:
+ 363              		.cfi_def_cfa_offset 8
+ 364              		.cfi_offset 7, -8
+ 365              		.cfi_offset 14, -4
+ 366 0002 84B0     		sub	sp, sp, #16
+ 367              	.LCFI11:
+ 368              		.cfi_def_cfa_offset 24
+ 369 0004 00AF     		add	r7, sp, #0
+ 370              	.LCFI12:
+ 371              		.cfi_def_cfa_register 7
+ 372 0006 7860     		str	r0, [r7, #4]
+  71:../Sources/Ultrasonico.c ****   US_DeviceType *ptr = (US_DeviceType*)UserDataPtr;
+ 373              		.loc 1 71 0
+ 374 0008 7B68     		ldr	r3, [r7, #4]
+ 375 000a FB60     		str	r3, [r7, #12]
+  72:../Sources/Ultrasonico.c **** 
+  73:../Sources/Ultrasonico.c ****   if (ptr->state==ECHO_TRIGGERED) { /* 1st edge, this is the raising edge, start measurement */
+ 376              		.loc 1 73 0
+ 377 000c FB68     		ldr	r3, [r7, #12]
+ 378 000e 1B7A     		ldrb	r3, [r3, #8]
+ 379 0010 DBB2     		uxtb	r3, r3
+ 380 0012 012B     		cmp	r3, #1
+ 381 0014 08D1     		bne	.L20
+  74:../Sources/Ultrasonico.c ****     TU1_ResetCounter(ptr->echoDevice);
+ 382              		.loc 1 74 0
+ 383 0016 FB68     		ldr	r3, [r7, #12]
+ 384 0018 5B68     		ldr	r3, [r3, #4]
+ 385 001a 181C     		mov	r0, r3
+ 386 001c FFF7FEFF 		bl	TU1_ResetCounter
+  75:../Sources/Ultrasonico.c ****     ptr->state = ECHO_MEASURE;
+ 387              		.loc 1 75 0
+ 388 0020 FB68     		ldr	r3, [r7, #12]
+ 389 0022 0222     		mov	r2, #2
+ 390 0024 1A72     		strb	r2, [r3, #8]
+ 391 0026 10E0     		b	.L19
+ 392              	.L20:
+  76:../Sources/Ultrasonico.c ****   } else if (ptr->state==ECHO_MEASURE) { /* 2nd edge, this is the falling edge: use measurement */
+ 393              		.loc 1 76 0
+ 394 0028 FB68     		ldr	r3, [r7, #12]
+ 395 002a 1B7A     		ldrb	r3, [r3, #8]
+ 396 002c DBB2     		uxtb	r3, r3
+ 397 002e 022B     		cmp	r3, #2
+ 398 0030 0BD1     		bne	.L19
+  77:../Sources/Ultrasonico.c ****     (void)TU1_GetCaptureValue(ptr->echoDevice, 0, &ptr->capture);
+ 399              		.loc 1 77 0
+ 400 0032 FB68     		ldr	r3, [r7, #12]
+ 401 0034 5A68     		ldr	r2, [r3, #4]
+ 402 0036 FB68     		ldr	r3, [r7, #12]
+ 403 0038 0C33     		add	r3, r3, #12
+ 404 003a 101C     		mov	r0, r2
+ 405 003c 0021     		mov	r1, #0
+ 406 003e 1A1C     		mov	r2, r3
+ 407 0040 FFF7FEFF 		bl	TU1_GetCaptureValue
+  78:../Sources/Ultrasonico.c ****     ptr->state = ECHO_FINISHED;
+ 408              		.loc 1 78 0
+ 409 0044 FB68     		ldr	r3, [r7, #12]
+ 410 0046 0422     		mov	r2, #4
+ 411 0048 1A72     		strb	r2, [r3, #8]
+ 412              	.L19:
+  79:../Sources/Ultrasonico.c ****   }
+  80:../Sources/Ultrasonico.c **** }
+ 413              		.loc 1 80 0
+ 414 004a BD46     		mov	sp, r7
+ 415 004c 04B0     		add	sp, sp, #16
+ 416              		@ sp needed for prologue
+ 417 004e 80BD     		pop	{r7, pc}
+ 418              		.cfi_endproc
+ 419              	.LFE4:
+ 421              		.section	.text.US_EventEchoOverflow,"ax",%progbits
+ 422              		.align	2
+ 423              		.global	US_EventEchoOverflow
+ 424              		.code	16
+ 425              		.thumb_func
+ 427              	US_EventEchoOverflow:
+ 428              	.LFB5:
+  81:../Sources/Ultrasonico.c **** 
+  82:../Sources/Ultrasonico.c **** void US_EventEchoOverflow(LDD_TUserData *UserDataPtr) {
+ 429              		.loc 1 82 0
+ 430              		.cfi_startproc
+ 431 0000 80B5     		push	{r7, lr}
+ 432              	.LCFI13:
+ 433              		.cfi_def_cfa_offset 8
+ 434              		.cfi_offset 7, -8
+ 435              		.cfi_offset 14, -4
+ 436 0002 84B0     		sub	sp, sp, #16
+ 437              	.LCFI14:
+ 438              		.cfi_def_cfa_offset 24
+ 439 0004 00AF     		add	r7, sp, #0
+ 440              	.LCFI15:
+ 441              		.cfi_def_cfa_register 7
+ 442 0006 7860     		str	r0, [r7, #4]
+  83:../Sources/Ultrasonico.c ****   US_DeviceType *ptr = (US_DeviceType*)UserDataPtr;
+ 443              		.loc 1 83 0
+ 444 0008 7B68     		ldr	r3, [r7, #4]
+ 445 000a FB60     		str	r3, [r7, #12]
+  84:../Sources/Ultrasonico.c ****   
+  85:../Sources/Ultrasonico.c ****   ptr->state = ECHO_OVERFLOW;
+ 446              		.loc 1 85 0
+ 447 000c FB68     		ldr	r3, [r7, #12]
+ 448 000e 0322     		mov	r2, #3
+ 449 0010 1A72     		strb	r2, [r3, #8]
+  86:../Sources/Ultrasonico.c **** }
+ 450              		.loc 1 86 0
+ 451 0012 BD46     		mov	sp, r7
+ 452 0014 04B0     		add	sp, sp, #16
+ 453              		@ sp needed for prologue
+ 454 0016 80BD     		pop	{r7, pc}
+ 455              		.cfi_endproc
+ 456              	.LFE5:
+ 458              		.section	.text.calcAirspeed_dms,"ax",%progbits
+ 459              		.align	2
+ 460              		.code	16
+ 461              		.thumb_func
+ 463              	calcAirspeed_dms:
+ 464              	.LFB6:
+  87:../Sources/Ultrasonico.c **** 
+  88:../Sources/Ultrasonico.c **** static uint16_t calcAirspeed_dms(uint8_t temperatureCelsius) {
+ 465              		.loc 1 88 0
+ 466              		.cfi_startproc
+ 467 0000 80B5     		push	{r7, lr}
+ 468              	.LCFI16:
+ 469              		.cfi_def_cfa_offset 8
+ 470              		.cfi_offset 7, -8
+ 471              		.cfi_offset 14, -4
+ 472 0002 84B0     		sub	sp, sp, #16
+ 473              	.LCFI17:
+ 474              		.cfi_def_cfa_offset 24
+ 475 0004 00AF     		add	r7, sp, #0
+ 476              	.LCFI18:
+ 477              		.cfi_def_cfa_register 7
+ 478 0006 021C     		mov	r2, r0
+ 479 0008 FB1D     		add	r3, r7, #7
+ 480 000a 1A70     		strb	r2, [r3]
+  89:../Sources/Ultrasonico.c ****   /* Return the airspeed depending on the temperature, in deci-meter per second */
+  90:../Sources/Ultrasonico.c ****   unsigned int airspeed; /* decimeters per second */
+  91:../Sources/Ultrasonico.c **** 
+  92:../Sources/Ultrasonico.c ****   airspeed = 3313 + (6 * temperatureCelsius); /* dry air, 0% humidity, see http://en.wikipedia.org/
+ 481              		.loc 1 92 0
+ 482 000c FB1D     		add	r3, r7, #7
+ 483 000e 1A78     		ldrb	r2, [r3]
+ 484 0010 131C     		mov	r3, r2
+ 485 0012 5B00     		lsl	r3, r3, #1
+ 486 0014 9B18     		add	r3, r3, r2
+ 487 0016 5B00     		lsl	r3, r3, #1
+ 488 0018 0A4A     		ldr	r2, .L24
+ 489 001a 9B18     		add	r3, r3, r2
+ 490 001c FB60     		str	r3, [r7, #12]
+  93:../Sources/Ultrasonico.c ****   airspeed -= (airspeed/100)*15; /* factor in ~15% for a relative humidity of ~40% */ 
+ 491              		.loc 1 93 0
+ 492 001e FB68     		ldr	r3, [r7, #12]
+ 493 0020 181C     		mov	r0, r3
+ 494 0022 6421     		mov	r1, #100
+ 495 0024 FFF7FEFF 		bl	__aeabi_uidiv
+ 496 0028 031C     		mov	r3, r0
+ 497 002a 1A1C     		mov	r2, r3
+ 498 002c 131C     		mov	r3, r2
+ 499 002e 1B01     		lsl	r3, r3, #4
+ 500 0030 9B1A     		sub	r3, r3, r2
+ 501 0032 FA68     		ldr	r2, [r7, #12]
+ 502 0034 D31A     		sub	r3, r2, r3
+ 503 0036 FB60     		str	r3, [r7, #12]
+  94:../Sources/Ultrasonico.c ****   return airspeed;
+ 504              		.loc 1 94 0
+ 505 0038 FB68     		ldr	r3, [r7, #12]
+ 506 003a 9BB2     		uxth	r3, r3
+  95:../Sources/Ultrasonico.c **** }
+ 507              		.loc 1 95 0
+ 508 003c 181C     		mov	r0, r3
+ 509 003e BD46     		mov	sp, r7
+ 510 0040 04B0     		add	sp, sp, #16
+ 511              		@ sp needed for prologue
+ 512 0042 80BD     		pop	{r7, pc}
+ 513              	.L25:
+ 514              		.align	2
+ 515              	.L24:
+ 516 0044 F10C0000 		.word	3313
+ 517              		.cfi_endproc
+ 518              	.LFE6:
+ 520              		.section	.text.US_usToCentimeters,"ax",%progbits
+ 521              		.align	2
+ 522              		.global	US_usToCentimeters
+ 523              		.code	16
+ 524              		.thumb_func
+ 526              	US_usToCentimeters:
+ 527              	.LFB7:
+  96:../Sources/Ultrasonico.c **** 
+  97:../Sources/Ultrasonico.c **** uint16_t US_usToCentimeters(uint16_t microseconds, uint8_t temperatureCelsius) {
+ 528              		.loc 1 97 0
+ 529              		.cfi_startproc
+ 530 0000 90B5     		push	{r4, r7, lr}
+ 531              	.LCFI19:
+ 532              		.cfi_def_cfa_offset 12
+ 533              		.cfi_offset 4, -12
+ 534              		.cfi_offset 7, -8
+ 535              		.cfi_offset 14, -4
+ 536 0002 83B0     		sub	sp, sp, #12
+ 537              	.LCFI20:
+ 538              		.cfi_def_cfa_offset 24
+ 539 0004 00AF     		add	r7, sp, #0
+ 540              	.LCFI21:
+ 541              		.cfi_def_cfa_register 7
+ 542 0006 0A1C     		mov	r2, r1
+ 543 0008 BB1D     		add	r3, r7, #6
+ 544 000a 011C     		add	r1, r0, #0
+ 545 000c 1980     		strh	r1, [r3]
+ 546 000e 7B1D     		add	r3, r7, #5
+ 547 0010 1A70     		strb	r2, [r3]
+  98:../Sources/Ultrasonico.c ****   return (microseconds*100UL)/calcAirspeed_dms(temperatureCelsius)/2; /* 2 because because of two w
+ 548              		.loc 1 98 0
+ 549 0012 BB1D     		add	r3, r7, #6
+ 550 0014 1B88     		ldrh	r3, [r3]
+ 551 0016 6422     		mov	r2, #100
+ 552 0018 141C     		mov	r4, r2
+ 553 001a 5C43     		mul	r4, r3
+ 554 001c 7B1D     		add	r3, r7, #5
+ 555 001e 1B78     		ldrb	r3, [r3]
+ 556 0020 181C     		mov	r0, r3
+ 557 0022 FFF7FEFF 		bl	calcAirspeed_dms
+ 558 0026 031C     		mov	r3, r0
+ 559 0028 201C     		mov	r0, r4
+ 560 002a 191C     		mov	r1, r3
+ 561 002c FFF7FEFF 		bl	__aeabi_uidiv
+ 562 0030 031C     		mov	r3, r0
+ 563 0032 5B08     		lsr	r3, r3, #1
+ 564 0034 9BB2     		uxth	r3, r3
+  99:../Sources/Ultrasonico.c **** }
+ 565              		.loc 1 99 0
+ 566 0036 181C     		mov	r0, r3
+ 567 0038 BD46     		mov	sp, r7
+ 568 003a 03B0     		add	sp, sp, #12
+ 569              		@ sp needed for prologue
+ 570 003c 90BD     		pop	{r4, r7, pc}
+ 571              		.cfi_endproc
+ 572              	.LFE7:
+ 574              		.section	.text.sUltrasonico,"ax",%progbits
+ 575              		.align	2
+ 576              		.global	sUltrasonico
+ 577              		.code	16
+ 578              		.thumb_func
+ 580              	sUltrasonico:
+ 581              	.LFB8:
+ 100:../Sources/Ultrasonico.c **** uint16_t sUltrasonico(void){
+ 582              		.loc 1 100 0
+ 583              		.cfi_startproc
+ 584 0000 90B5     		push	{r4, r7, lr}
+ 585              	.LCFI22:
+ 586              		.cfi_def_cfa_offset 12
+ 587              		.cfi_offset 4, -12
+ 588              		.cfi_offset 7, -8
+ 589              		.cfi_offset 14, -4
+ 590 0002 87B0     		sub	sp, sp, #28
+ 591              	.LCFI23:
+ 592              		.cfi_def_cfa_offset 40
+ 593 0004 02AF     		add	r7, sp, #8
+ 594              	.LCFI24:
+ 595              		.cfi_def_cfa 7, 32
+ 101:../Sources/Ultrasonico.c **** 	uint16_t us, cm;
+ 102:../Sources/Ultrasonico.c **** 	uint8_t buf[8];
+ 103:../Sources/Ultrasonico.c **** 	
+ 104:../Sources/Ultrasonico.c **** 	
+ 105:../Sources/Ultrasonico.c **** 	us = tUltrasonico();
+ 596              		.loc 1 105 0
+ 597 0006 3C1C     		mov	r4, r7
+ 598 0008 0E34     		add	r4, r4, #14
+ 599 000a FFF7FEFF 		bl	tUltrasonico
+ 600 000e 031C     		mov	r3, r0
+ 601 0010 2380     		strh	r3, [r4]
+ 106:../Sources/Ultrasonico.c **** 	UTIL1_Num16uToStrFormatted(buf, sizeof(buf), us, ' ', 5);
+ 602              		.loc 1 106 0
+ 603 0012 3A1D     		add	r2, r7, #4
+ 604 0014 3B1C     		mov	r3, r7
+ 605 0016 0E33     		add	r3, r3, #14
+ 606 0018 1B88     		ldrh	r3, [r3]
+ 607 001a 0521     		mov	r1, #5
+ 608 001c 0091     		str	r1, [sp]
+ 609 001e 101C     		mov	r0, r2
+ 610 0020 0821     		mov	r1, #8
+ 611 0022 1A1C     		mov	r2, r3
+ 612 0024 2023     		mov	r3, #32
+ 613 0026 FFF7FEFF 		bl	UTIL1_Num16uToStrFormatted
+ 107:../Sources/Ultrasonico.c **** 	cm = US_usToCentimeters(us, 22);
+ 614              		.loc 1 107 0
+ 615 002a 3C1C     		mov	r4, r7
+ 616 002c 0C34     		add	r4, r4, #12
+ 617 002e 3B1C     		mov	r3, r7
+ 618 0030 0E33     		add	r3, r3, #14
+ 619 0032 1B88     		ldrh	r3, [r3]
+ 620 0034 181C     		mov	r0, r3
+ 621 0036 1621     		mov	r1, #22
+ 622 0038 FFF7FEFF 		bl	US_usToCentimeters
+ 623 003c 031C     		mov	r3, r0
+ 624 003e 2380     		strh	r3, [r4]
+ 108:../Sources/Ultrasonico.c **** 	UTIL1_Num16uToStrFormatted(buf, sizeof(buf), cm, ' ', 5);
+ 625              		.loc 1 108 0
+ 626 0040 3A1D     		add	r2, r7, #4
+ 627 0042 3B1C     		mov	r3, r7
+ 628 0044 0C33     		add	r3, r3, #12
+ 629 0046 1B88     		ldrh	r3, [r3]
+ 630 0048 0521     		mov	r1, #5
+ 631 004a 0091     		str	r1, [sp]
+ 632 004c 101C     		mov	r0, r2
+ 633 004e 0821     		mov	r1, #8
+ 634 0050 1A1C     		mov	r2, r3
+ 635 0052 2023     		mov	r3, #32
+ 636 0054 FFF7FEFF 		bl	UTIL1_Num16uToStrFormatted
+ 109:../Sources/Ultrasonico.c **** 	TU1_Deinit(&usDevice);
+ 637              		.loc 1 109 0
+ 638 0058 054B     		ldr	r3, .L28
+ 639 005a 181C     		mov	r0, r3
+ 640 005c FFF7FEFF 		bl	TU1_Deinit
+ 110:../Sources/Ultrasonico.c **** 	
+ 111:../Sources/Ultrasonico.c **** 	return cm;
+ 641              		.loc 1 111 0
+ 642 0060 3B1C     		mov	r3, r7
+ 643 0062 0C33     		add	r3, r3, #12
+ 644 0064 1B88     		ldrh	r3, [r3]
+ 112:../Sources/Ultrasonico.c **** }
+ 645              		.loc 1 112 0
+ 646 0066 181C     		mov	r0, r3
+ 647 0068 BD46     		mov	sp, r7
+ 648 006a 05B0     		add	sp, sp, #20
+ 649              		@ sp needed for prologue
+ 650 006c 90BD     		pop	{r4, r7, pc}
+ 651              	.L29:
+ 652 006e C046     		.align	2
+ 653              	.L28:
+ 654 0070 00000000 		.word	usDevice
+ 655              		.cfi_endproc
+ 656              	.LFE8:
+ 658              		.section	.text.sUltrasonico2,"ax",%progbits
+ 659              		.align	2
+ 660              		.global	sUltrasonico2
+ 661              		.code	16
+ 662              		.thumb_func
+ 664              	sUltrasonico2:
+ 665              	.LFB9:
+ 113:../Sources/Ultrasonico.c **** uint16_t sUltrasonico2(void){
+ 666              		.loc 1 113 0
+ 667              		.cfi_startproc
+ 668 0000 90B5     		push	{r4, r7, lr}
+ 669              	.LCFI25:
+ 670              		.cfi_def_cfa_offset 12
+ 671              		.cfi_offset 4, -12
+ 672              		.cfi_offset 7, -8
+ 673              		.cfi_offset 14, -4
+ 674 0002 87B0     		sub	sp, sp, #28
+ 675              	.LCFI26:
+ 676              		.cfi_def_cfa_offset 40
+ 677 0004 02AF     		add	r7, sp, #8
+ 678              	.LCFI27:
+ 679              		.cfi_def_cfa 7, 32
+ 114:../Sources/Ultrasonico.c **** 	uint16_t us, cm;
+ 115:../Sources/Ultrasonico.c **** 	uint8_t buf[8];
+ 116:../Sources/Ultrasonico.c **** 	
+ 117:../Sources/Ultrasonico.c **** 	
+ 118:../Sources/Ultrasonico.c **** 	us = tUltrasonico2();
+ 680              		.loc 1 118 0
+ 681 0006 3C1C     		mov	r4, r7
+ 682 0008 0E34     		add	r4, r4, #14
+ 683 000a FFF7FEFF 		bl	tUltrasonico2
+ 684 000e 031C     		mov	r3, r0
+ 685 0010 2380     		strh	r3, [r4]
+ 119:../Sources/Ultrasonico.c **** 	UTIL1_Num16uToStrFormatted(buf, sizeof(buf), us, ' ', 5);
+ 686              		.loc 1 119 0
+ 687 0012 3A1D     		add	r2, r7, #4
+ 688 0014 3B1C     		mov	r3, r7
+ 689 0016 0E33     		add	r3, r3, #14
+ 690 0018 1B88     		ldrh	r3, [r3]
+ 691 001a 0521     		mov	r1, #5
+ 692 001c 0091     		str	r1, [sp]
+ 693 001e 101C     		mov	r0, r2
+ 694 0020 0821     		mov	r1, #8
+ 695 0022 1A1C     		mov	r2, r3
+ 696 0024 2023     		mov	r3, #32
+ 697 0026 FFF7FEFF 		bl	UTIL1_Num16uToStrFormatted
+ 120:../Sources/Ultrasonico.c **** 	cm = US_usToCentimeters(us, 22);
+ 698              		.loc 1 120 0
+ 699 002a 3C1C     		mov	r4, r7
+ 700 002c 0C34     		add	r4, r4, #12
+ 701 002e 3B1C     		mov	r3, r7
+ 702 0030 0E33     		add	r3, r3, #14
+ 703 0032 1B88     		ldrh	r3, [r3]
+ 704 0034 181C     		mov	r0, r3
+ 705 0036 1621     		mov	r1, #22
+ 706 0038 FFF7FEFF 		bl	US_usToCentimeters
+ 707 003c 031C     		mov	r3, r0
+ 708 003e 2380     		strh	r3, [r4]
+ 121:../Sources/Ultrasonico.c **** 	UTIL1_Num16uToStrFormatted(buf, sizeof(buf), cm, ' ', 5);
+ 709              		.loc 1 121 0
+ 710 0040 3A1D     		add	r2, r7, #4
+ 711 0042 3B1C     		mov	r3, r7
+ 712 0044 0C33     		add	r3, r3, #12
+ 713 0046 1B88     		ldrh	r3, [r3]
+ 714 0048 0521     		mov	r1, #5
+ 715 004a 0091     		str	r1, [sp]
+ 716 004c 101C     		mov	r0, r2
+ 717 004e 0821     		mov	r1, #8
+ 718 0050 1A1C     		mov	r2, r3
+ 719 0052 2023     		mov	r3, #32
+ 720 0054 FFF7FEFF 		bl	UTIL1_Num16uToStrFormatted
+ 122:../Sources/Ultrasonico.c **** 	TU1_Deinit(&usDevice2);
+ 721              		.loc 1 122 0
+ 722 0058 054B     		ldr	r3, .L31
+ 723 005a 181C     		mov	r0, r3
+ 724 005c FFF7FEFF 		bl	TU1_Deinit
+ 123:../Sources/Ultrasonico.c **** 
+ 124:../Sources/Ultrasonico.c **** 	return cm;
+ 725              		.loc 1 124 0
+ 726 0060 3B1C     		mov	r3, r7
+ 727 0062 0C33     		add	r3, r3, #12
+ 728 0064 1B88     		ldrh	r3, [r3]
+ 125:../Sources/Ultrasonico.c **** }
+ 729              		.loc 1 125 0
+ 730 0066 181C     		mov	r0, r3
+ 731 0068 BD46     		mov	sp, r7
+ 732 006a 05B0     		add	sp, sp, #20
+ 733              		@ sp needed for prologue
+ 734 006c 90BD     		pop	{r4, r7, pc}
+ 735              	.L32:
+ 736 006e C046     		.align	2
+ 737              	.L31:
+ 738 0070 00000000 		.word	usDevice2
+ 739              		.cfi_endproc
+ 740              	.LFE9:
+ 742              		.text
+ 743              	.Letext0:
+ 744              		.file 2 "C:/Freescale/CW MCU v10.3/MCU/ARM_GCC_Support/ewl/EWL_C/include/cstdint"
+ 745              		.file 3 "C:/Users/LARM/workspace/MQX-Lite + SPI + Motor + Ultrassom/Generated_Code/PE_Types.h"
+ 746              		.file 4 "C:/Users/LARM/workspace/MQX-Lite + SPI + Motor + Ultrassom/Generated_Code/PE_LDD.h"
+ 747              		.file 5 "C:/Users/LARM/workspace/MQX-Lite + SPI + Motor + Ultrassom/Generated_Code/TU1.h"
+ 748              		.file 6 "C:/Users/LARM/workspace/MQX-Lite + SPI + Motor + Ultrassom/MQXLITE/psp/cortex_m/psptypes.
+ 749              		.file 7 "C:/Users/LARM/workspace/MQX-Lite + SPI + Motor + Ultrassom/Generated_Code/IO_Map.h"
+ 750              		.file 8 "../Sources/Application.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 Ultrasonico.c
+C:\Users\LARM\AppData\Local\Temp\ccx1nhRz.s:18     .bss.usDevice:00000000 $d
+C:\Users\LARM\AppData\Local\Temp\ccx1nhRz.s:21     .bss.usDevice:00000000 usDevice
+C:\Users\LARM\AppData\Local\Temp\ccx1nhRz.s:24     .bss.usDevice2:00000000 $d
+C:\Users\LARM\AppData\Local\Temp\ccx1nhRz.s:27     .bss.usDevice2:00000000 usDevice2
+C:\Users\LARM\AppData\Local\Temp\ccx1nhRz.s:30     .text.inicioUltrasonico:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\ccx1nhRz.s:35     .text.inicioUltrasonico:00000000 inicioUltrasonico
+C:\Users\LARM\AppData\Local\Temp\ccx1nhRz.s:76     .text.inicioUltrasonico:00000030 $d
+C:\Users\LARM\AppData\Local\Temp\ccx1nhRz.s:81     .text.inicioUltrasonico2:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\ccx1nhRz.s:86     .text.inicioUltrasonico2:00000000 inicioUltrasonico2
+C:\Users\LARM\AppData\Local\Temp\ccx1nhRz.s:126    .text.inicioUltrasonico2:00000030 $d
+C:\Users\LARM\AppData\Local\Temp\ccx1nhRz.s:131    .rodata:00000000 $d
+C:\Users\LARM\AppData\Local\Temp\ccx1nhRz.s:136    .text.tUltrasonico:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\ccx1nhRz.s:141    .text.tUltrasonico:00000000 tUltrasonico
+C:\Users\LARM\AppData\Local\Temp\ccx1nhRz.s:235    .text.tUltrasonico:00000084 $d
+C:\Users\LARM\AppData\Local\Temp\ccx1nhRz.s:246    .text.tUltrasonico2:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\ccx1nhRz.s:251    .text.tUltrasonico2:00000000 tUltrasonico2
+C:\Users\LARM\AppData\Local\Temp\ccx1nhRz.s:345    .text.tUltrasonico2:00000084 $d
+C:\Users\LARM\AppData\Local\Temp\ccx1nhRz.s:352    .text.US_EventEchoCapture:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\ccx1nhRz.s:357    .text.US_EventEchoCapture:00000000 US_EventEchoCapture
+C:\Users\LARM\AppData\Local\Temp\ccx1nhRz.s:422    .text.US_EventEchoOverflow:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\ccx1nhRz.s:427    .text.US_EventEchoOverflow:00000000 US_EventEchoOverflow
+C:\Users\LARM\AppData\Local\Temp\ccx1nhRz.s:459    .text.calcAirspeed_dms:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\ccx1nhRz.s:463    .text.calcAirspeed_dms:00000000 calcAirspeed_dms
+C:\Users\LARM\AppData\Local\Temp\ccx1nhRz.s:516    .text.calcAirspeed_dms:00000044 $d
+C:\Users\LARM\AppData\Local\Temp\ccx1nhRz.s:521    .text.US_usToCentimeters:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\ccx1nhRz.s:526    .text.US_usToCentimeters:00000000 US_usToCentimeters
+C:\Users\LARM\AppData\Local\Temp\ccx1nhRz.s:575    .text.sUltrasonico:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\ccx1nhRz.s:580    .text.sUltrasonico:00000000 sUltrasonico
+C:\Users\LARM\AppData\Local\Temp\ccx1nhRz.s:654    .text.sUltrasonico:00000070 $d
+C:\Users\LARM\AppData\Local\Temp\ccx1nhRz.s:659    .text.sUltrasonico2:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\ccx1nhRz.s:664    .text.sUltrasonico2:00000000 sUltrasonico2
+C:\Users\LARM\AppData\Local\Temp\ccx1nhRz.s:738    .text.sUltrasonico2:00000070 $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+TRIG_Init
+TU1_Init
+TRIG2_Init
+__aeabi_uidiv
+TRIG_SetVal
+WAIT1_WaitCycles
+TRIG_ClrVal
+mString
+TRIG2_SetVal
+TRIG2_ClrVal
+TU1_ResetCounter
+TU1_GetCaptureValue
+UTIL1_Num16uToStrFormatted
+TU1_Deinit

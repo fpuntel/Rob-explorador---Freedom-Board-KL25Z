@@ -1,0 +1,488 @@
+   1              		.cpu cortex-m0
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 34, 0
+  11              		.eabi_attribute 18, 4
+  12              		.code	16
+  13              		.file	"mem_zero.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text._mem_zero,"ax",%progbits
+  18              		.align	2
+  19              		.global	_mem_zero
+  20              		.code	16
+  21              		.thumb_func
+  23              	_mem_zero:
+  24              	.LFB0:
+  25              		.file 1 "../MQXLITE/psp/cortex_m/mem_zero.c"
+   1:../MQXLITE/psp/cortex_m/mem_zero.c **** /**HEADER********************************************************************
+   2:../MQXLITE/psp/cortex_m/mem_zero.c **** *
+   3:../MQXLITE/psp/cortex_m/mem_zero.c **** * Copyright (c) 2010 Freescale Semiconductor;
+   4:../MQXLITE/psp/cortex_m/mem_zero.c **** * All Rights Reserved
+   5:../MQXLITE/psp/cortex_m/mem_zero.c **** *
+   6:../MQXLITE/psp/cortex_m/mem_zero.c **** ***************************************************************************
+   7:../MQXLITE/psp/cortex_m/mem_zero.c **** *
+   8:../MQXLITE/psp/cortex_m/mem_zero.c **** * THIS SOFTWARE IS PROVIDED BY FREESCALE "AS IS" AND ANY EXPRESSED OR
+   9:../MQXLITE/psp/cortex_m/mem_zero.c **** * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+  10:../MQXLITE/psp/cortex_m/mem_zero.c **** * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+  11:../MQXLITE/psp/cortex_m/mem_zero.c **** * IN NO EVENT SHALL FREESCALE OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+  12:../MQXLITE/psp/cortex_m/mem_zero.c **** * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+  13:../MQXLITE/psp/cortex_m/mem_zero.c **** * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  14:../MQXLITE/psp/cortex_m/mem_zero.c **** * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  15:../MQXLITE/psp/cortex_m/mem_zero.c **** * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  16:../MQXLITE/psp/cortex_m/mem_zero.c **** * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+  17:../MQXLITE/psp/cortex_m/mem_zero.c **** * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+  18:../MQXLITE/psp/cortex_m/mem_zero.c **** * THE POSSIBILITY OF SUCH DAMAGE.
+  19:../MQXLITE/psp/cortex_m/mem_zero.c **** *
+  20:../MQXLITE/psp/cortex_m/mem_zero.c **** **************************************************************************
+  21:../MQXLITE/psp/cortex_m/mem_zero.c **** *
+  22:../MQXLITE/psp/cortex_m/mem_zero.c **** * $FileName: mem_zero.c$
+  23:../MQXLITE/psp/cortex_m/mem_zero.c **** * $Version : 3.6.3.0$
+  24:../MQXLITE/psp/cortex_m/mem_zero.c **** * $Date    : Oct-18-2010$
+  25:../MQXLITE/psp/cortex_m/mem_zero.c **** *
+  26:../MQXLITE/psp/cortex_m/mem_zero.c **** * Comments:
+  27:../MQXLITE/psp/cortex_m/mem_zero.c **** *
+  28:../MQXLITE/psp/cortex_m/mem_zero.c **** *   This file contains the functions for zeroing memory
+  29:../MQXLITE/psp/cortex_m/mem_zero.c **** *
+  30:../MQXLITE/psp/cortex_m/mem_zero.c **** *END************************************************************************/
+  31:../MQXLITE/psp/cortex_m/mem_zero.c **** 
+  32:../MQXLITE/psp/cortex_m/mem_zero.c **** #include "mqx_inc.h"
+  33:../MQXLITE/psp/cortex_m/mem_zero.c **** 
+  34:../MQXLITE/psp/cortex_m/mem_zero.c **** 
+  35:../MQXLITE/psp/cortex_m/mem_zero.c **** /*FUNCTION*-------------------------------------------------------------------
+  36:../MQXLITE/psp/cortex_m/mem_zero.c **** *
+  37:../MQXLITE/psp/cortex_m/mem_zero.c **** * Function Name    : _mem_zero
+  38:../MQXLITE/psp/cortex_m/mem_zero.c **** * Returned Value   : none
+  39:../MQXLITE/psp/cortex_m/mem_zero.c **** * Comments         :
+  40:../MQXLITE/psp/cortex_m/mem_zero.c **** *   This function zeros the specified number of bytes at the specified
+  41:../MQXLITE/psp/cortex_m/mem_zero.c **** * location.
+  42:../MQXLITE/psp/cortex_m/mem_zero.c **** *   The zeroing is optimized to avoid alignment problems, and attempts
+  43:../MQXLITE/psp/cortex_m/mem_zero.c **** * to zero 32bit numbers optimally
+  44:../MQXLITE/psp/cortex_m/mem_zero.c **** *
+  45:../MQXLITE/psp/cortex_m/mem_zero.c **** *END*----------------------------------------------------------------------*/
+  46:../MQXLITE/psp/cortex_m/mem_zero.c **** 
+  47:../MQXLITE/psp/cortex_m/mem_zero.c **** 
+  48:../MQXLITE/psp/cortex_m/mem_zero.c **** void _mem_zero
+  49:../MQXLITE/psp/cortex_m/mem_zero.c ****    (
+  50:../MQXLITE/psp/cortex_m/mem_zero.c ****       /* [IN] the address to start zeroing memory from */
+  51:../MQXLITE/psp/cortex_m/mem_zero.c ****       register pointer from_ptr,
+  52:../MQXLITE/psp/cortex_m/mem_zero.c **** 
+  53:../MQXLITE/psp/cortex_m/mem_zero.c ****       /* [IN] the number of bytes to zero */
+  54:../MQXLITE/psp/cortex_m/mem_zero.c ****       register _mem_size number_of_bytes
+  55:../MQXLITE/psp/cortex_m/mem_zero.c ****    )
+  56:../MQXLITE/psp/cortex_m/mem_zero.c **** { /* Body */
+  26              		.loc 1 56 0
+  27              		.cfi_startproc
+  28 0000 B0B5     		push	{r4, r5, r7, lr}
+  29              	.LCFI0:
+  30              		.cfi_def_cfa_offset 16
+  31              		.cfi_offset 4, -16
+  32              		.cfi_offset 5, -12
+  33              		.cfi_offset 7, -8
+  34              		.cfi_offset 14, -4
+  35 0002 82B0     		sub	sp, sp, #8
+  36              	.LCFI1:
+  37              		.cfi_def_cfa_offset 24
+  38 0004 00AF     		add	r7, sp, #0
+  39              	.LCFI2:
+  40              		.cfi_def_cfa_register 7
+  41 0006 031C     		mov	r3, r0
+  42 0008 0A1C     		mov	r2, r1
+  57:../MQXLITE/psp/cortex_m/mem_zero.c **** #if MQX_USE_SMALL_MEM_ZERO
+  58:../MQXLITE/psp/cortex_m/mem_zero.c ****    register uint_8_ptr from8_ptr = (uint_8_ptr) from_ptr;
+  59:../MQXLITE/psp/cortex_m/mem_zero.c **** 
+  60:../MQXLITE/psp/cortex_m/mem_zero.c ****    if (number_of_bytes) {
+  61:../MQXLITE/psp/cortex_m/mem_zero.c ****       while (number_of_bytes--) {
+  62:../MQXLITE/psp/cortex_m/mem_zero.c ****          *from8_ptr++ = 0;
+  63:../MQXLITE/psp/cortex_m/mem_zero.c ****       } /* Endwhile */
+  64:../MQXLITE/psp/cortex_m/mem_zero.c ****    } /* Endif */
+  65:../MQXLITE/psp/cortex_m/mem_zero.c **** #else
+  66:../MQXLITE/psp/cortex_m/mem_zero.c ****    uint_8_ptr from8_ptr = (uint_8_ptr) from_ptr;
+  43              		.loc 1 66 0
+  44 000a 7B60     		str	r3, [r7, #4]
+  67:../MQXLITE/psp/cortex_m/mem_zero.c ****    uint_16_ptr from16_ptr = (uint_16_ptr) from_ptr;
+  45              		.loc 1 67 0
+  46 000c 3B60     		str	r3, [r7]
+  68:../MQXLITE/psp/cortex_m/mem_zero.c ****    register uint_32_ptr from32_ptr = (uint_32_ptr) from_ptr;
+  47              		.loc 1 68 0
+  48 000e 1C1C     		mov	r4, r3
+  69:../MQXLITE/psp/cortex_m/mem_zero.c ****    register uint_32 loops;
+  70:../MQXLITE/psp/cortex_m/mem_zero.c **** 
+  71:../MQXLITE/psp/cortex_m/mem_zero.c ****    if (number_of_bytes > 3) {
+  49              		.loc 1 71 0
+  50 0010 032A     		cmp	r2, #3
+  51 0012 00D8     		bhi	.LCB12
+  52 0014 89E0     		b	.L2	@long jump
+  53              	.LCB12:
+  72:../MQXLITE/psp/cortex_m/mem_zero.c **** 
+  73:../MQXLITE/psp/cortex_m/mem_zero.c ****       /* Try to align source on word */
+  74:../MQXLITE/psp/cortex_m/mem_zero.c ****       if ((uint_32)from_ptr & 1) {
+  54              		.loc 1 74 0
+  55 0016 181C     		mov	r0, r3
+  56 0018 0121     		mov	r1, #1
+  57 001a 0140     		and	r1, r0
+  58 001c C9B2     		uxtb	r1, r1
+  59 001e 0029     		cmp	r1, #0
+  60 0020 08D0     		beq	.L3
+  75:../MQXLITE/psp/cortex_m/mem_zero.c ****          from8_ptr = (uint_8_ptr) from_ptr;
+  61              		.loc 1 75 0
+  62 0022 7B60     		str	r3, [r7, #4]
+  76:../MQXLITE/psp/cortex_m/mem_zero.c ****          *from8_ptr++ = 0;
+  63              		.loc 1 76 0
+  64 0024 7B68     		ldr	r3, [r7, #4]
+  65 0026 0021     		mov	r1, #0
+  66 0028 1970     		strb	r1, [r3]
+  67 002a 7B68     		ldr	r3, [r7, #4]
+  68 002c 0133     		add	r3, r3, #1
+  69 002e 7B60     		str	r3, [r7, #4]
+  77:../MQXLITE/psp/cortex_m/mem_zero.c **** 
+  78:../MQXLITE/psp/cortex_m/mem_zero.c ****          from_ptr = from8_ptr;
+  70              		.loc 1 78 0
+  71 0030 7B68     		ldr	r3, [r7, #4]
+  79:../MQXLITE/psp/cortex_m/mem_zero.c ****          --number_of_bytes;
+  72              		.loc 1 79 0
+  73 0032 013A     		sub	r2, r2, #1
+  74              	.L3:
+  80:../MQXLITE/psp/cortex_m/mem_zero.c ****       } /* Endif */
+  81:../MQXLITE/psp/cortex_m/mem_zero.c **** 
+  82:../MQXLITE/psp/cortex_m/mem_zero.c ****       /* Try to align source on longword */
+  83:../MQXLITE/psp/cortex_m/mem_zero.c ****       if ((uint_32)from_ptr & 2) {
+  75              		.loc 1 83 0
+  76 0034 181C     		mov	r0, r3
+  77 0036 0221     		mov	r1, #2
+  78 0038 0140     		and	r1, r0
+  79 003a 08D0     		beq	.L4
+  84:../MQXLITE/psp/cortex_m/mem_zero.c ****          from16_ptr = (uint_16_ptr) from_ptr;
+  80              		.loc 1 84 0
+  81 003c 3B60     		str	r3, [r7]
+  85:../MQXLITE/psp/cortex_m/mem_zero.c **** 
+  86:../MQXLITE/psp/cortex_m/mem_zero.c ****          *from16_ptr++ = 0;
+  82              		.loc 1 86 0
+  83 003e 3B68     		ldr	r3, [r7]
+  84 0040 0021     		mov	r1, #0
+  85 0042 1980     		strh	r1, [r3]
+  86 0044 3B68     		ldr	r3, [r7]
+  87 0046 0233     		add	r3, r3, #2
+  88 0048 3B60     		str	r3, [r7]
+  87:../MQXLITE/psp/cortex_m/mem_zero.c **** 
+  88:../MQXLITE/psp/cortex_m/mem_zero.c ****          from_ptr = from16_ptr;
+  89              		.loc 1 88 0
+  90 004a 3B68     		ldr	r3, [r7]
+  89:../MQXLITE/psp/cortex_m/mem_zero.c ****          number_of_bytes -= 2;
+  91              		.loc 1 89 0
+  92 004c 023A     		sub	r2, r2, #2
+  93              	.L4:
+  90:../MQXLITE/psp/cortex_m/mem_zero.c ****       } /* Endif */
+  91:../MQXLITE/psp/cortex_m/mem_zero.c **** 
+  92:../MQXLITE/psp/cortex_m/mem_zero.c ****       from32_ptr = (uint_32_ptr) from_ptr;
+  94              		.loc 1 92 0
+  95 004e 1C1C     		mov	r4, r3
+  93:../MQXLITE/psp/cortex_m/mem_zero.c **** #if MQX_USE_BLOCK_MEM_ZERO
+  94:../MQXLITE/psp/cortex_m/mem_zero.c ****       /*
+  95:../MQXLITE/psp/cortex_m/mem_zero.c ****       ** so lets copy longwords...
+  96:../MQXLITE/psp/cortex_m/mem_zero.c ****       ** to increase performance, we will do 64 bytes (16 * longwords) at once and after that jumpi
+  97:../MQXLITE/psp/cortex_m/mem_zero.c ****       ** This consumes more RAM, more flash, but gets less instruction cycles.
+  98:../MQXLITE/psp/cortex_m/mem_zero.c ****       */
+  99:../MQXLITE/psp/cortex_m/mem_zero.c ****       for (loops = number_of_bytes >> 6; loops != 0; loops--) {
+  96              		.loc 1 99 0
+  97 0050 9509     		lsr	r5, r2, #6
+  98 0052 30E0     		b	.L5
+  99              	.L6:
+ 100:../MQXLITE/psp/cortex_m/mem_zero.c ****          /* copy 16 longwords */
+ 101:../MQXLITE/psp/cortex_m/mem_zero.c ****          *from32_ptr++ = 0;
+ 100              		.loc 1 101 0 discriminator 2
+ 101 0054 0023     		mov	r3, #0
+ 102 0056 2360     		str	r3, [r4]
+ 103 0058 0434     		add	r4, r4, #4
+ 102:../MQXLITE/psp/cortex_m/mem_zero.c ****          *from32_ptr++ = 0;
+ 104              		.loc 1 102 0 discriminator 2
+ 105 005a 0023     		mov	r3, #0
+ 106 005c 2360     		str	r3, [r4]
+ 107 005e 0434     		add	r4, r4, #4
+ 103:../MQXLITE/psp/cortex_m/mem_zero.c ****          *from32_ptr++ = 0;
+ 108              		.loc 1 103 0 discriminator 2
+ 109 0060 0023     		mov	r3, #0
+ 110 0062 2360     		str	r3, [r4]
+ 111 0064 0434     		add	r4, r4, #4
+ 104:../MQXLITE/psp/cortex_m/mem_zero.c ****          *from32_ptr++ = 0;
+ 112              		.loc 1 104 0 discriminator 2
+ 113 0066 0023     		mov	r3, #0
+ 114 0068 2360     		str	r3, [r4]
+ 115 006a 0434     		add	r4, r4, #4
+ 105:../MQXLITE/psp/cortex_m/mem_zero.c ****          *from32_ptr++ = 0;
+ 116              		.loc 1 105 0 discriminator 2
+ 117 006c 0023     		mov	r3, #0
+ 118 006e 2360     		str	r3, [r4]
+ 119 0070 0434     		add	r4, r4, #4
+ 106:../MQXLITE/psp/cortex_m/mem_zero.c ****          *from32_ptr++ = 0;
+ 120              		.loc 1 106 0 discriminator 2
+ 121 0072 0023     		mov	r3, #0
+ 122 0074 2360     		str	r3, [r4]
+ 123 0076 0434     		add	r4, r4, #4
+ 107:../MQXLITE/psp/cortex_m/mem_zero.c ****          *from32_ptr++ = 0;
+ 124              		.loc 1 107 0 discriminator 2
+ 125 0078 0023     		mov	r3, #0
+ 126 007a 2360     		str	r3, [r4]
+ 127 007c 0434     		add	r4, r4, #4
+ 108:../MQXLITE/psp/cortex_m/mem_zero.c ****          *from32_ptr++ = 0;
+ 128              		.loc 1 108 0 discriminator 2
+ 129 007e 0023     		mov	r3, #0
+ 130 0080 2360     		str	r3, [r4]
+ 131 0082 0434     		add	r4, r4, #4
+ 109:../MQXLITE/psp/cortex_m/mem_zero.c ****          *from32_ptr++ = 0;
+ 132              		.loc 1 109 0 discriminator 2
+ 133 0084 0023     		mov	r3, #0
+ 134 0086 2360     		str	r3, [r4]
+ 135 0088 0434     		add	r4, r4, #4
+ 110:../MQXLITE/psp/cortex_m/mem_zero.c ****          *from32_ptr++ = 0;
+ 136              		.loc 1 110 0 discriminator 2
+ 137 008a 0023     		mov	r3, #0
+ 138 008c 2360     		str	r3, [r4]
+ 139 008e 0434     		add	r4, r4, #4
+ 111:../MQXLITE/psp/cortex_m/mem_zero.c ****          *from32_ptr++ = 0;
+ 140              		.loc 1 111 0 discriminator 2
+ 141 0090 0023     		mov	r3, #0
+ 142 0092 2360     		str	r3, [r4]
+ 143 0094 0434     		add	r4, r4, #4
+ 112:../MQXLITE/psp/cortex_m/mem_zero.c ****          *from32_ptr++ = 0;
+ 144              		.loc 1 112 0 discriminator 2
+ 145 0096 0023     		mov	r3, #0
+ 146 0098 2360     		str	r3, [r4]
+ 147 009a 0434     		add	r4, r4, #4
+ 113:../MQXLITE/psp/cortex_m/mem_zero.c ****          *from32_ptr++ = 0;
+ 148              		.loc 1 113 0 discriminator 2
+ 149 009c 0023     		mov	r3, #0
+ 150 009e 2360     		str	r3, [r4]
+ 151 00a0 0434     		add	r4, r4, #4
+ 114:../MQXLITE/psp/cortex_m/mem_zero.c ****          *from32_ptr++ = 0;
+ 152              		.loc 1 114 0 discriminator 2
+ 153 00a2 0023     		mov	r3, #0
+ 154 00a4 2360     		str	r3, [r4]
+ 155 00a6 0434     		add	r4, r4, #4
+ 115:../MQXLITE/psp/cortex_m/mem_zero.c ****          *from32_ptr++ = 0;
+ 156              		.loc 1 115 0 discriminator 2
+ 157 00a8 0023     		mov	r3, #0
+ 158 00aa 2360     		str	r3, [r4]
+ 159 00ac 0434     		add	r4, r4, #4
+ 116:../MQXLITE/psp/cortex_m/mem_zero.c ****          *from32_ptr++ = 0;
+ 160              		.loc 1 116 0 discriminator 2
+ 161 00ae 0023     		mov	r3, #0
+ 162 00b0 2360     		str	r3, [r4]
+ 163 00b2 0434     		add	r4, r4, #4
+  99:../MQXLITE/psp/cortex_m/mem_zero.c ****       for (loops = number_of_bytes >> 6; loops != 0; loops--) {
+ 164              		.loc 1 99 0 discriminator 2
+ 165 00b4 013D     		sub	r5, r5, #1
+ 166              	.L5:
+  99:../MQXLITE/psp/cortex_m/mem_zero.c ****       for (loops = number_of_bytes >> 6; loops != 0; loops--) {
+ 167              		.loc 1 99 0 is_stmt 0 discriminator 1
+ 168 00b6 002D     		cmp	r5, #0
+ 169 00b8 CCD1     		bne	.L6
+ 117:../MQXLITE/psp/cortex_m/mem_zero.c ****       } /* Endwhile */
+ 118:../MQXLITE/psp/cortex_m/mem_zero.c **** 
+ 119:../MQXLITE/psp/cortex_m/mem_zero.c ****       /* Now, write the rest of bytes */
+ 120:../MQXLITE/psp/cortex_m/mem_zero.c ****       switch ((number_of_bytes >> 2) & 0xF) {
+ 170              		.loc 1 120 0 is_stmt 1
+ 171 00ba 9108     		lsr	r1, r2, #2
+ 172 00bc 0F23     		mov	r3, #15
+ 173 00be 0B40     		and	r3, r1
+ 174 00c0 0F2B     		cmp	r3, #15
+ 175 00c2 31D8     		bhi	.L7
+ 176 00c4 9900     		lsl	r1, r3, #2
+ 177 00c6 244B     		ldr	r3, .L26
+ 178 00c8 CB18     		add	r3, r1, r3
+ 179 00ca 1B68     		ldr	r3, [r3]
+ 180 00cc 9F46     		mov	pc, r3
+ 181              		.section	.rodata._mem_zero,"a",%progbits
+ 182              		.align	2
+ 183              	.L23:
+ 184 0000 28010000 		.word	.L7
+ 185 0004 22010000 		.word	.L8
+ 186 0008 1C010000 		.word	.L9
+ 187 000c 16010000 		.word	.L10
+ 188 0010 10010000 		.word	.L11
+ 189 0014 0A010000 		.word	.L12
+ 190 0018 04010000 		.word	.L13
+ 191 001c FE000000 		.word	.L14
+ 192 0020 F8000000 		.word	.L15
+ 193 0024 F2000000 		.word	.L16
+ 194 0028 EC000000 		.word	.L17
+ 195 002c E6000000 		.word	.L18
+ 196 0030 E0000000 		.word	.L19
+ 197 0034 DA000000 		.word	.L20
+ 198 0038 D4000000 		.word	.L21
+ 199 003c CE000000 		.word	.L22
+ 200              		.section	.text._mem_zero
+ 201              	.L22:
+ 121:../MQXLITE/psp/cortex_m/mem_zero.c ****          case 15: *from32_ptr++ = 0;
+ 202              		.loc 1 121 0
+ 203 00ce 0023     		mov	r3, #0
+ 204 00d0 2360     		str	r3, [r4]
+ 205 00d2 0434     		add	r4, r4, #4
+ 206              	.L21:
+ 122:../MQXLITE/psp/cortex_m/mem_zero.c ****          case 14: *from32_ptr++ = 0;
+ 207              		.loc 1 122 0
+ 208 00d4 0023     		mov	r3, #0
+ 209 00d6 2360     		str	r3, [r4]
+ 210 00d8 0434     		add	r4, r4, #4
+ 211              	.L20:
+ 123:../MQXLITE/psp/cortex_m/mem_zero.c ****          case 13: *from32_ptr++ = 0;
+ 212              		.loc 1 123 0
+ 213 00da 0023     		mov	r3, #0
+ 214 00dc 2360     		str	r3, [r4]
+ 215 00de 0434     		add	r4, r4, #4
+ 216              	.L19:
+ 124:../MQXLITE/psp/cortex_m/mem_zero.c ****          case 12: *from32_ptr++ = 0;
+ 217              		.loc 1 124 0
+ 218 00e0 0023     		mov	r3, #0
+ 219 00e2 2360     		str	r3, [r4]
+ 220 00e4 0434     		add	r4, r4, #4
+ 221              	.L18:
+ 125:../MQXLITE/psp/cortex_m/mem_zero.c ****          case 11: *from32_ptr++ = 0;
+ 222              		.loc 1 125 0
+ 223 00e6 0023     		mov	r3, #0
+ 224 00e8 2360     		str	r3, [r4]
+ 225 00ea 0434     		add	r4, r4, #4
+ 226              	.L17:
+ 126:../MQXLITE/psp/cortex_m/mem_zero.c ****          case 10: *from32_ptr++ = 0;
+ 227              		.loc 1 126 0
+ 228 00ec 0023     		mov	r3, #0
+ 229 00ee 2360     		str	r3, [r4]
+ 230 00f0 0434     		add	r4, r4, #4
+ 231              	.L16:
+ 127:../MQXLITE/psp/cortex_m/mem_zero.c ****          case 9:  *from32_ptr++ = 0;
+ 232              		.loc 1 127 0
+ 233 00f2 0023     		mov	r3, #0
+ 234 00f4 2360     		str	r3, [r4]
+ 235 00f6 0434     		add	r4, r4, #4
+ 236              	.L15:
+ 128:../MQXLITE/psp/cortex_m/mem_zero.c ****          case 8:  *from32_ptr++ = 0;
+ 237              		.loc 1 128 0
+ 238 00f8 0023     		mov	r3, #0
+ 239 00fa 2360     		str	r3, [r4]
+ 240 00fc 0434     		add	r4, r4, #4
+ 241              	.L14:
+ 129:../MQXLITE/psp/cortex_m/mem_zero.c ****          case 7:  *from32_ptr++ = 0;
+ 242              		.loc 1 129 0
+ 243 00fe 0023     		mov	r3, #0
+ 244 0100 2360     		str	r3, [r4]
+ 245 0102 0434     		add	r4, r4, #4
+ 246              	.L13:
+ 130:../MQXLITE/psp/cortex_m/mem_zero.c ****          case 6:  *from32_ptr++ = 0;
+ 247              		.loc 1 130 0
+ 248 0104 0023     		mov	r3, #0
+ 249 0106 2360     		str	r3, [r4]
+ 250 0108 0434     		add	r4, r4, #4
+ 251              	.L12:
+ 131:../MQXLITE/psp/cortex_m/mem_zero.c ****          case 5:  *from32_ptr++ = 0;
+ 252              		.loc 1 131 0
+ 253 010a 0023     		mov	r3, #0
+ 254 010c 2360     		str	r3, [r4]
+ 255 010e 0434     		add	r4, r4, #4
+ 256              	.L11:
+ 132:../MQXLITE/psp/cortex_m/mem_zero.c ****          case 4:  *from32_ptr++ = 0;
+ 257              		.loc 1 132 0
+ 258 0110 0023     		mov	r3, #0
+ 259 0112 2360     		str	r3, [r4]
+ 260 0114 0434     		add	r4, r4, #4
+ 261              	.L10:
+ 133:../MQXLITE/psp/cortex_m/mem_zero.c ****          case 3:  *from32_ptr++ = 0;
+ 262              		.loc 1 133 0
+ 263 0116 0023     		mov	r3, #0
+ 264 0118 2360     		str	r3, [r4]
+ 265 011a 0434     		add	r4, r4, #4
+ 266              	.L9:
+ 134:../MQXLITE/psp/cortex_m/mem_zero.c ****          case 2:  *from32_ptr++ = 0;
+ 267              		.loc 1 134 0
+ 268 011c 0023     		mov	r3, #0
+ 269 011e 2360     		str	r3, [r4]
+ 270 0120 0434     		add	r4, r4, #4
+ 271              	.L8:
+ 135:../MQXLITE/psp/cortex_m/mem_zero.c ****          case 1:  *from32_ptr++ = 0;
+ 272              		.loc 1 135 0
+ 273 0122 0023     		mov	r3, #0
+ 274 0124 2360     		str	r3, [r4]
+ 275 0126 0434     		add	r4, r4, #4
+ 276              	.L7:
+ 136:../MQXLITE/psp/cortex_m/mem_zero.c ****       } /* Endswitch */
+ 137:../MQXLITE/psp/cortex_m/mem_zero.c **** 
+ 138:../MQXLITE/psp/cortex_m/mem_zero.c **** #else /* MQX_USE_BLOCK_MEM_ZERO */
+ 139:../MQXLITE/psp/cortex_m/mem_zero.c ****       for (loops = number_of_bytes >> 2; loops != 0; loops--) {
+ 140:../MQXLITE/psp/cortex_m/mem_zero.c ****          *from32_ptr++ = 0;
+ 141:../MQXLITE/psp/cortex_m/mem_zero.c ****       }
+ 142:../MQXLITE/psp/cortex_m/mem_zero.c **** #endif /* MQX_USE_BLOCK_MEM_ZERO */
+ 143:../MQXLITE/psp/cortex_m/mem_zero.c ****       from_ptr = from32_ptr;
+ 277              		.loc 1 143 0
+ 278 0128 231C     		mov	r3, r4
+ 279              	.L2:
+ 144:../MQXLITE/psp/cortex_m/mem_zero.c ****    } /* Endif */
+ 145:../MQXLITE/psp/cortex_m/mem_zero.c **** 
+ 146:../MQXLITE/psp/cortex_m/mem_zero.c ****    /* Copy all remaining bytes */
+ 147:../MQXLITE/psp/cortex_m/mem_zero.c ****    if (number_of_bytes & 2) {
+ 280              		.loc 1 147 0
+ 281 012a 0221     		mov	r1, #2
+ 282 012c 1140     		and	r1, r2
+ 283 012e 07D0     		beq	.L24
+ 148:../MQXLITE/psp/cortex_m/mem_zero.c ****       from16_ptr = (uint_16_ptr) from_ptr;
+ 284              		.loc 1 148 0
+ 285 0130 3B60     		str	r3, [r7]
+ 149:../MQXLITE/psp/cortex_m/mem_zero.c **** 
+ 150:../MQXLITE/psp/cortex_m/mem_zero.c ****       *from16_ptr++ = 0;
+ 286              		.loc 1 150 0
+ 287 0132 3B68     		ldr	r3, [r7]
+ 288 0134 0021     		mov	r1, #0
+ 289 0136 1980     		strh	r1, [r3]
+ 290 0138 3B68     		ldr	r3, [r7]
+ 291 013a 0233     		add	r3, r3, #2
+ 292 013c 3B60     		str	r3, [r7]
+ 151:../MQXLITE/psp/cortex_m/mem_zero.c **** 
+ 152:../MQXLITE/psp/cortex_m/mem_zero.c ****       from_ptr = from16_ptr;
+ 293              		.loc 1 152 0
+ 294 013e 3B68     		ldr	r3, [r7]
+ 295              	.L24:
+ 153:../MQXLITE/psp/cortex_m/mem_zero.c ****    } /* Endif */
+ 154:../MQXLITE/psp/cortex_m/mem_zero.c ****    if (number_of_bytes & 1) {
+ 296              		.loc 1 154 0
+ 297 0140 111C     		mov	r1, r2
+ 298 0142 0122     		mov	r2, #1
+ 299 0144 0A40     		and	r2, r1
+ 300 0146 D2B2     		uxtb	r2, r2
+ 301 0148 002A     		cmp	r2, #0
+ 302 014a 01D0     		beq	.L1
+ 155:../MQXLITE/psp/cortex_m/mem_zero.c ****       * (uint_8_ptr) from_ptr = 0;
+ 303              		.loc 1 155 0
+ 304 014c 0022     		mov	r2, #0
+ 305 014e 1A70     		strb	r2, [r3]
+ 306              	.L1:
+ 156:../MQXLITE/psp/cortex_m/mem_zero.c ****    } /* Endif */
+ 157:../MQXLITE/psp/cortex_m/mem_zero.c **** #endif
+ 158:../MQXLITE/psp/cortex_m/mem_zero.c **** } /* Endbody */
+ 307              		.loc 1 158 0
+ 308 0150 BD46     		mov	sp, r7
+ 309 0152 02B0     		add	sp, sp, #8
+ 310              		@ sp needed for prologue
+ 311 0154 B0BD     		pop	{r4, r5, r7, pc}
+ 312              	.L27:
+ 313 0156 C046     		.align	2
+ 314              	.L26:
+ 315 0158 00000000 		.word	.L23
+ 316              		.cfi_endproc
+ 317              	.LFE0:
+ 319              		.text
+ 320              	.Letext0:
+ 321              		.file 2 "C:/Users/LARM/workspace/MQX-Lite + SPI + Motor + Ultrassom/MQXLITE/psp/cortex_m/psptypes.
+DEFINED SYMBOLS
+                            *ABS*:00000000 mem_zero.c
+C:\Users\LARM\AppData\Local\Temp\ccmM5xOE.s:18     .text._mem_zero:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\ccmM5xOE.s:23     .text._mem_zero:00000000 _mem_zero
+C:\Users\LARM\AppData\Local\Temp\ccmM5xOE.s:182    .rodata._mem_zero:00000000 $d
+C:\Users\LARM\AppData\Local\Temp\ccmM5xOE.s:315    .text._mem_zero:00000158 $d
+                     .debug_frame:00000010 $d
+
+NO UNDEFINED SYMBOLS

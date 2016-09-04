@@ -1,0 +1,761 @@
+   1              		.cpu cortex-m0
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 34, 0
+  11              		.eabi_attribute 18, 4
+  12              		.code	16
+  13              		.file	"mqx_tasks.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.bss.deviceData,"aw",%nobits
+  18              		.align	2
+  21              	deviceData:
+  22 0000 00000000 		.space	12
+  22      00000000 
+  22      00000000 
+  23              		.comm	c,2,2
+  24              		.comm	c1,2,2
+  25              		.comm	passo,4,4
+  26              		.comm	sValor,28,4
+  27              		.comm	sValorMotor,28,4
+  28              		.global	dado
+  29              		.section	.bss.dado,"aw",%nobits
+  32              	dado:
+  33 0000 00       		.space	1
+  34              		.comm	UserDataPtr,4,4
+  35              		.global	BufferPtr
+  36              		.section	.bss.BufferPtr,"aw",%nobits
+  37              		.align	2
+  40              	BufferPtr:
+  41 0000 00000000 		.space	4
+  42              		.global	__aeabi_uidiv
+  43              		.global	__aeabi_uidivmod
+  44              		.section	.rodata
+  45              		.align	2
+  46              	.LC0:
+  47 0000 636D3A00 		.ascii	"cm:\000"
+  48              		.align	2
+  49              	.LC3:
+  50 0004 0D0A00   		.ascii	"\015\012\000"
+  51              		.section	.text.formataDado,"ax",%progbits
+  52              		.align	2
+  53              		.global	formataDado
+  54              		.code	16
+  55              		.thumb_func
+  57              	formataDado:
+  58              	.LFB0:
+  59              		.file 1 "../Sources/mqx_tasks.c"
+   1:../Sources/mqx_tasks.c **** #include "Cpu.h"
+   2:../Sources/mqx_tasks.c **** #include "Events.h"
+   3:../Sources/mqx_tasks.c **** #include "mqx_tasks.h"
+   4:../Sources/mqx_tasks.c **** #include "Application.h"
+   5:../Sources/mqx_tasks.c **** #include "Ultrasonico.h"
+   6:../Sources/mqx_tasks.c **** 
+   7:../Sources/mqx_tasks.c **** void formataDado(uint16_t c);
+   8:../Sources/mqx_tasks.c **** static UART_Desc deviceData;
+   9:../Sources/mqx_tasks.c **** 
+  10:../Sources/mqx_tasks.c **** //Váriavel GLOBAL
+  11:../Sources/mqx_tasks.c **** uint16_t c;
+  12:../Sources/mqx_tasks.c **** uint16_t c1;
+  13:../Sources/mqx_tasks.c **** 
+  14:../Sources/mqx_tasks.c **** int passo;
+  15:../Sources/mqx_tasks.c **** 
+  16:../Sources/mqx_tasks.c **** //Semáforo
+  17:../Sources/mqx_tasks.c **** LWSEM_STRUCT sValor;
+  18:../Sources/mqx_tasks.c **** LWSEM_STRUCT sValorMotor;
+  19:../Sources/mqx_tasks.c **** 
+  20:../Sources/mqx_tasks.c **** //SPI
+  21:../Sources/mqx_tasks.c **** char dado = 0;
+  22:../Sources/mqx_tasks.c **** LDD_TUserData *UserDataPtr;
+  23:../Sources/mqx_tasks.c **** LDD_TData *BufferPtr = 0;
+  24:../Sources/mqx_tasks.c **** 
+  25:../Sources/mqx_tasks.c **** void formataDado(uint16_t c){
+  60              		.loc 1 25 0
+  61              		.cfi_startproc
+  62 0000 80B5     		push	{r7, lr}
+  63              	.LCFI0:
+  64              		.cfi_def_cfa_offset 8
+  65              		.cfi_offset 7, -8
+  66              		.cfi_offset 14, -4
+  67 0002 84B0     		sub	sp, sp, #16
+  68              	.LCFI1:
+  69              		.cfi_def_cfa_offset 24
+  70 0004 00AF     		add	r7, sp, #0
+  71              	.LCFI2:
+  72              		.cfi_def_cfa_register 7
+  73 0006 021C     		mov	r2, r0
+  74 0008 BB1D     		add	r3, r7, #6
+  75 000a 1A80     		strh	r2, [r3]
+  26:../Sources/mqx_tasks.c **** 	unsigned char cm[3];
+  27:../Sources/mqx_tasks.c **** 	
+  28:../Sources/mqx_tasks.c **** 	cm[0] = (char)((c / 100)+48);
+  76              		.loc 1 28 0
+  77 000c BB1D     		add	r3, r7, #6
+  78 000e 1B88     		ldrh	r3, [r3]
+  79 0010 181C     		mov	r0, r3
+  80 0012 6421     		mov	r1, #100
+  81 0014 FFF7FEFF 		bl	__aeabi_uidiv
+  82 0018 031C     		mov	r3, r0
+  83 001a 9BB2     		uxth	r3, r3
+  84 001c DBB2     		uxtb	r3, r3
+  85 001e 3033     		add	r3, r3, #48
+  86 0020 DAB2     		uxtb	r2, r3
+  87 0022 3B1C     		mov	r3, r7
+  88 0024 0C33     		add	r3, r3, #12
+  89 0026 1A70     		strb	r2, [r3]
+  29:../Sources/mqx_tasks.c **** 	cm[1] = (char)(((c % 100)/10)+48);
+  90              		.loc 1 29 0
+  91 0028 BB1D     		add	r3, r7, #6
+  92 002a 1B88     		ldrh	r3, [r3]
+  93 002c 181C     		mov	r0, r3
+  94 002e 6421     		mov	r1, #100
+  95 0030 FFF7FEFF 		bl	__aeabi_uidivmod
+  96 0034 0B1C     		mov	r3, r1
+  97 0036 9BB2     		uxth	r3, r3
+  98 0038 181C     		mov	r0, r3
+  99 003a 0A21     		mov	r1, #10
+ 100 003c FFF7FEFF 		bl	__aeabi_uidiv
+ 101 0040 031C     		mov	r3, r0
+ 102 0042 9BB2     		uxth	r3, r3
+ 103 0044 DBB2     		uxtb	r3, r3
+ 104 0046 3033     		add	r3, r3, #48
+ 105 0048 DAB2     		uxtb	r2, r3
+ 106 004a 3B1C     		mov	r3, r7
+ 107 004c 0C33     		add	r3, r3, #12
+ 108 004e 5A70     		strb	r2, [r3, #1]
+  30:../Sources/mqx_tasks.c **** 	cm[2] = (char)((c % 10)+48);
+ 109              		.loc 1 30 0
+ 110 0050 BB1D     		add	r3, r7, #6
+ 111 0052 1B88     		ldrh	r3, [r3]
+ 112 0054 181C     		mov	r0, r3
+ 113 0056 0A21     		mov	r1, #10
+ 114 0058 FFF7FEFF 		bl	__aeabi_uidivmod
+ 115 005c 0B1C     		mov	r3, r1
+ 116 005e 9BB2     		uxth	r3, r3
+ 117 0060 DBB2     		uxtb	r3, r3
+ 118 0062 3033     		add	r3, r3, #48
+ 119 0064 DAB2     		uxtb	r2, r3
+ 120 0066 3B1C     		mov	r3, r7
+ 121 0068 0C33     		add	r3, r3, #12
+ 122 006a 9A70     		strb	r2, [r3, #2]
+  31:../Sources/mqx_tasks.c **** 	
+  32:../Sources/mqx_tasks.c **** 	SendString((unsigned char*)"cm:", &deviceData);
+ 123              		.loc 1 32 0
+ 124 006c 134A     		ldr	r2, .L2
+ 125 006e 144B     		ldr	r3, .L2+4
+ 126 0070 101C     		mov	r0, r2
+ 127 0072 191C     		mov	r1, r3
+ 128 0074 FFF7FEFF 		bl	SendString
+  33:../Sources/mqx_tasks.c **** 	SendChar(cm[0], &deviceData);
+ 129              		.loc 1 33 0
+ 130 0078 3B1C     		mov	r3, r7
+ 131 007a 0C33     		add	r3, r3, #12
+ 132 007c 1A78     		ldrb	r2, [r3]
+ 133 007e 104B     		ldr	r3, .L2+4
+ 134 0080 101C     		mov	r0, r2
+ 135 0082 191C     		mov	r1, r3
+ 136 0084 FFF7FEFF 		bl	SendChar
+  34:../Sources/mqx_tasks.c **** 	SendChar(cm[1], &deviceData);
+ 137              		.loc 1 34 0
+ 138 0088 3B1C     		mov	r3, r7
+ 139 008a 0C33     		add	r3, r3, #12
+ 140 008c 5A78     		ldrb	r2, [r3, #1]
+ 141 008e 0C4B     		ldr	r3, .L2+4
+ 142 0090 101C     		mov	r0, r2
+ 143 0092 191C     		mov	r1, r3
+ 144 0094 FFF7FEFF 		bl	SendChar
+  35:../Sources/mqx_tasks.c **** 	SendChar(cm[2], &deviceData);
+ 145              		.loc 1 35 0
+ 146 0098 3B1C     		mov	r3, r7
+ 147 009a 0C33     		add	r3, r3, #12
+ 148 009c 9A78     		ldrb	r2, [r3, #2]
+ 149 009e 084B     		ldr	r3, .L2+4
+ 150 00a0 101C     		mov	r0, r2
+ 151 00a2 191C     		mov	r1, r3
+ 152 00a4 FFF7FEFF 		bl	SendChar
+  36:../Sources/mqx_tasks.c **** 	SendString((unsigned char*)"\r\n", &deviceData);
+ 153              		.loc 1 36 0
+ 154 00a8 064A     		ldr	r2, .L2+8
+ 155 00aa 054B     		ldr	r3, .L2+4
+ 156 00ac 101C     		mov	r0, r2
+ 157 00ae 191C     		mov	r1, r3
+ 158 00b0 FFF7FEFF 		bl	SendString
+  37:../Sources/mqx_tasks.c **** }
+ 159              		.loc 1 37 0
+ 160 00b4 BD46     		mov	sp, r7
+ 161 00b6 04B0     		add	sp, sp, #16
+ 162              		@ sp needed for prologue
+ 163 00b8 80BD     		pop	{r7, pc}
+ 164              	.L3:
+ 165 00ba C046     		.align	2
+ 166              	.L2:
+ 167 00bc 00000000 		.word	.LC0
+ 168 00c0 00000000 		.word	deviceData
+ 169 00c4 04000000 		.word	.LC3
+ 170              		.cfi_endproc
+ 171              	.LFE0:
+ 173              		.section	.text.SendChar,"ax",%progbits
+ 174              		.align	2
+ 175              		.code	16
+ 176              		.thumb_func
+ 178              	SendChar:
+ 179              	.LFB1:
+  38:../Sources/mqx_tasks.c **** static void SendChar(unsigned char ch, UART_Desc *desc) {
+ 180              		.loc 1 38 0
+ 181              		.cfi_startproc
+ 182 0000 80B5     		push	{r7, lr}
+ 183              	.LCFI3:
+ 184              		.cfi_def_cfa_offset 8
+ 185              		.cfi_offset 7, -8
+ 186              		.cfi_offset 14, -4
+ 187 0002 82B0     		sub	sp, sp, #8
+ 188              	.LCFI4:
+ 189              		.cfi_def_cfa_offset 16
+ 190 0004 00AF     		add	r7, sp, #0
+ 191              	.LCFI5:
+ 192              		.cfi_def_cfa_register 7
+ 193 0006 021C     		mov	r2, r0
+ 194 0008 3960     		str	r1, [r7]
+ 195 000a FB1D     		add	r3, r7, #7
+ 196 000c 1A70     		strb	r2, [r3]
+  39:../Sources/mqx_tasks.c ****   desc->isSent = FALSE;  /* this will be set to 1 once the block has been sent */
+ 197              		.loc 1 39 0
+ 198 000e 3B68     		ldr	r3, [r7]
+ 199 0010 0022     		mov	r2, #0
+ 200 0012 1A71     		strb	r2, [r3, #4]
+  40:../Sources/mqx_tasks.c ****   while(AS1_SendBlock(desc->handle, (LDD_TData*)&ch, 1)!=ERR_OK) {} /* Send char */
+ 201              		.loc 1 40 0
+ 202 0014 C046     		mov	r8, r8
+ 203              	.L5:
+ 204              		.loc 1 40 0 is_stmt 0 discriminator 1
+ 205 0016 3B68     		ldr	r3, [r7]
+ 206 0018 1A68     		ldr	r2, [r3]
+ 207 001a FB1D     		add	r3, r7, #7
+ 208 001c 101C     		mov	r0, r2
+ 209 001e 191C     		mov	r1, r3
+ 210 0020 0122     		mov	r2, #1
+ 211 0022 FFF7FEFF 		bl	AS1_SendBlock
+ 212 0026 031C     		mov	r3, r0
+ 213 0028 F5D1     		bne	.L5
+  41:../Sources/mqx_tasks.c ****   while(!desc->isSent) {} /* wait until we get the green flag from the TX interrupt */
+ 214              		.loc 1 41 0 is_stmt 1
+ 215 002a C046     		mov	r8, r8
+ 216              	.L6:
+ 217              		.loc 1 41 0 is_stmt 0 discriminator 1
+ 218 002c 3B68     		ldr	r3, [r7]
+ 219 002e 1B79     		ldrb	r3, [r3, #4]
+ 220 0030 DBB2     		uxtb	r3, r3
+ 221 0032 002B     		cmp	r3, #0
+ 222 0034 FAD0     		beq	.L6
+  42:../Sources/mqx_tasks.c **** }
+ 223              		.loc 1 42 0 is_stmt 1
+ 224 0036 BD46     		mov	sp, r7
+ 225 0038 02B0     		add	sp, sp, #8
+ 226              		@ sp needed for prologue
+ 227 003a 80BD     		pop	{r7, pc}
+ 228              		.cfi_endproc
+ 229              	.LFE1:
+ 231              		.section	.text.SendString,"ax",%progbits
+ 232              		.align	2
+ 233              		.code	16
+ 234              		.thumb_func
+ 236              	SendString:
+ 237              	.LFB2:
+  43:../Sources/mqx_tasks.c ****  
+  44:../Sources/mqx_tasks.c **** static void SendString(const unsigned char *str,  UART_Desc *desc) {
+ 238              		.loc 1 44 0
+ 239              		.cfi_startproc
+ 240 0000 80B5     		push	{r7, lr}
+ 241              	.LCFI6:
+ 242              		.cfi_def_cfa_offset 8
+ 243              		.cfi_offset 7, -8
+ 244              		.cfi_offset 14, -4
+ 245 0002 82B0     		sub	sp, sp, #8
+ 246              	.LCFI7:
+ 247              		.cfi_def_cfa_offset 16
+ 248 0004 00AF     		add	r7, sp, #0
+ 249              	.LCFI8:
+ 250              		.cfi_def_cfa_register 7
+ 251 0006 7860     		str	r0, [r7, #4]
+ 252 0008 3960     		str	r1, [r7]
+  45:../Sources/mqx_tasks.c ****   while(*str!='\0') {
+ 253              		.loc 1 45 0
+ 254 000a 09E0     		b	.L8
+ 255              	.L9:
+  46:../Sources/mqx_tasks.c ****     SendChar(*str++, desc);
+ 256              		.loc 1 46 0
+ 257 000c 7B68     		ldr	r3, [r7, #4]
+ 258 000e 1A78     		ldrb	r2, [r3]
+ 259 0010 7B68     		ldr	r3, [r7, #4]
+ 260 0012 0133     		add	r3, r3, #1
+ 261 0014 7B60     		str	r3, [r7, #4]
+ 262 0016 3B68     		ldr	r3, [r7]
+ 263 0018 101C     		mov	r0, r2
+ 264 001a 191C     		mov	r1, r3
+ 265 001c FFF7FEFF 		bl	SendChar
+ 266              	.L8:
+  45:../Sources/mqx_tasks.c ****   while(*str!='\0') {
+ 267              		.loc 1 45 0 discriminator 1
+ 268 0020 7B68     		ldr	r3, [r7, #4]
+ 269 0022 1B78     		ldrb	r3, [r3]
+ 270 0024 002B     		cmp	r3, #0
+ 271 0026 F1D1     		bne	.L9
+  47:../Sources/mqx_tasks.c ****   }
+  48:../Sources/mqx_tasks.c **** }
+ 272              		.loc 1 48 0
+ 273 0028 BD46     		mov	sp, r7
+ 274 002a 02B0     		add	sp, sp, #8
+ 275              		@ sp needed for prologue
+ 276 002c 80BD     		pop	{r7, pc}
+ 277              		.cfi_endproc
+ 278              	.LFE2:
+ 280 002e C046     		.section	.text.mString,"ax",%progbits
+ 281              		.align	2
+ 282              		.global	mString
+ 283              		.code	16
+ 284              		.thumb_func
+ 286              	mString:
+ 287              	.LFB3:
+  49:../Sources/mqx_tasks.c **** void mString(const unsigned char *str){
+ 288              		.loc 1 49 0
+ 289              		.cfi_startproc
+ 290 0000 80B5     		push	{r7, lr}
+ 291              	.LCFI9:
+ 292              		.cfi_def_cfa_offset 8
+ 293              		.cfi_offset 7, -8
+ 294              		.cfi_offset 14, -4
+ 295 0002 82B0     		sub	sp, sp, #8
+ 296              	.LCFI10:
+ 297              		.cfi_def_cfa_offset 16
+ 298 0004 00AF     		add	r7, sp, #0
+ 299              	.LCFI11:
+ 300              		.cfi_def_cfa_register 7
+ 301 0006 7860     		str	r0, [r7, #4]
+  50:../Sources/mqx_tasks.c **** 	SendString((unsigned char*)str, &deviceData);
+ 302              		.loc 1 50 0
+ 303 0008 7A68     		ldr	r2, [r7, #4]
+ 304 000a 044B     		ldr	r3, .L11
+ 305 000c 101C     		mov	r0, r2
+ 306 000e 191C     		mov	r1, r3
+ 307 0010 FFF7FEFF 		bl	SendString
+  51:../Sources/mqx_tasks.c **** }
+ 308              		.loc 1 51 0
+ 309 0014 BD46     		mov	sp, r7
+ 310 0016 02B0     		add	sp, sp, #8
+ 311              		@ sp needed for prologue
+ 312 0018 80BD     		pop	{r7, pc}
+ 313              	.L12:
+ 314 001a C046     		.align	2
+ 315              	.L11:
+ 316 001c 00000000 		.word	deviceData
+ 317              		.cfi_endproc
+ 318              	.LFE3:
+ 320              		.section	.text.Init,"ax",%progbits
+ 321              		.align	2
+ 322              		.code	16
+ 323              		.thumb_func
+ 325              	Init:
+ 326              	.LFB4:
+  52:../Sources/mqx_tasks.c **** static void Init(void) {
+ 327              		.loc 1 52 0
+ 328              		.cfi_startproc
+ 329 0000 80B5     		push	{r7, lr}
+ 330              	.LCFI12:
+ 331              		.cfi_def_cfa_offset 8
+ 332              		.cfi_offset 7, -8
+ 333              		.cfi_offset 14, -4
+ 334 0002 00AF     		add	r7, sp, #0
+ 335              	.LCFI13:
+ 336              		.cfi_def_cfa_register 7
+  53:../Sources/mqx_tasks.c **** 	//Criar semáforo
+  54:../Sources/mqx_tasks.c **** 	_lwsem_create(&sValor, 1);	  
+ 337              		.loc 1 54 0
+ 338 0004 164B     		ldr	r3, .L15
+ 339 0006 181C     		mov	r0, r3
+ 340 0008 0121     		mov	r1, #1
+ 341 000a FFF7FEFF 		bl	_lwsem_create
+  55:../Sources/mqx_tasks.c **** 	_lwsem_create(&sValorMotor, 1);	 
+ 342              		.loc 1 55 0
+ 343 000e 154B     		ldr	r3, .L15+4
+ 344 0010 181C     		mov	r0, r3
+ 345 0012 0121     		mov	r1, #1
+ 346 0014 FFF7FEFF 		bl	_lwsem_create
+  56:../Sources/mqx_tasks.c **** 	
+  57:../Sources/mqx_tasks.c ****   // Inicializa campos da Struct 
+  58:../Sources/mqx_tasks.c ****   deviceData.handle = AS1_Init(&deviceData);
+ 347              		.loc 1 58 0
+ 348 0018 134B     		ldr	r3, .L15+8
+ 349 001a 181C     		mov	r0, r3
+ 350 001c FFF7FEFF 		bl	AS1_Init
+ 351 0020 021C     		mov	r2, r0
+ 352 0022 114B     		ldr	r3, .L15+8
+ 353 0024 1A60     		str	r2, [r3]
+  59:../Sources/mqx_tasks.c ****   deviceData.isSent = FALSE;
+ 354              		.loc 1 59 0
+ 355 0026 104B     		ldr	r3, .L15+8
+ 356 0028 0022     		mov	r2, #0
+ 357 002a 1A71     		strb	r2, [r3, #4]
+  60:../Sources/mqx_tasks.c ****   deviceData.rxChar = '\0';
+ 358              		.loc 1 60 0
+ 359 002c 0E4B     		ldr	r3, .L15+8
+ 360 002e 0022     		mov	r2, #0
+ 361 0030 5A71     		strb	r2, [r3, #5]
+  61:../Sources/mqx_tasks.c ****   deviceData.rxPutFct = RxBuf_Put;
+ 362              		.loc 1 61 0
+ 363 0032 0D4B     		ldr	r3, .L15+8
+ 364 0034 0D4A     		ldr	r2, .L15+12
+ 365 0036 9A60     		str	r2, [r3, #8]
+  62:../Sources/mqx_tasks.c ****   // Configurando RX para receber o buufer
+  63:../Sources/mqx_tasks.c ****   RxBuf_Init(); //Inicializa o Buiffer
+ 366              		.loc 1 63 0
+ 367 0038 FFF7FEFF 		bl	RxBuf_Init
+  64:../Sources/mqx_tasks.c ****   // Configura ReceiveBlock () com um único buffer byte. 
+  65:../Sources/mqx_tasks.c ****   while(AS1_ReceiveBlock(deviceData.handle, (LDD_TData *)&deviceData.rxChar, sizeof(deviceData.rxCh
+ 368              		.loc 1 65 0
+ 369 003c C046     		mov	r8, r8
+ 370              	.L14:
+ 371              		.loc 1 65 0 is_stmt 0 discriminator 1
+ 372 003e 0A4B     		ldr	r3, .L15+8
+ 373 0040 1A68     		ldr	r2, [r3]
+ 374 0042 0B4B     		ldr	r3, .L15+16
+ 375 0044 101C     		mov	r0, r2
+ 376 0046 191C     		mov	r1, r3
+ 377 0048 0122     		mov	r2, #1
+ 378 004a FFF7FEFF 		bl	AS1_ReceiveBlock
+ 379 004e 031C     		mov	r3, r0
+ 380 0050 F5D1     		bne	.L14
+  66:../Sources/mqx_tasks.c **** 
+  67:../Sources/mqx_tasks.c ****   //Ultrasonico
+  68:../Sources/mqx_tasks.c ****   inicioUltrasonico(); 
+ 381              		.loc 1 68 0 is_stmt 1
+ 382 0052 FFF7FEFF 		bl	inicioUltrasonico
+  69:../Sources/mqx_tasks.c ****   inicioUltrasonico2(); 
+ 383              		.loc 1 69 0
+ 384 0056 FFF7FEFF 		bl	inicioUltrasonico2
+  70:../Sources/mqx_tasks.c **** }
+ 385              		.loc 1 70 0
+ 386 005a BD46     		mov	sp, r7
+ 387              		@ sp needed for prologue
+ 388 005c 80BD     		pop	{r7, pc}
+ 389              	.L16:
+ 390 005e C046     		.align	2
+ 391              	.L15:
+ 392 0060 00000000 		.word	sValor
+ 393 0064 00000000 		.word	sValorMotor
+ 394 0068 00000000 		.word	deviceData
+ 395 006c 00000000 		.word	RxBuf_Put
+ 396 0070 05000000 		.word	deviceData+5
+ 397              		.cfi_endproc
+ 398              	.LFE4:
+ 400              		.section	.rodata
+ 401 0007 00       		.align	2
+ 402              	.LC12:
+ 403 0008 54617265 		.ascii	"Tarefa SENSOR\015\012\000"
+ 403      66612053 
+ 403      454E534F 
+ 403      520D0A00 
+ 404              		.align	2
+ 405              	.LC17:
+ 406 0018 0A53656E 		.ascii	"\012Sensor 1 \000"
+ 406      736F7220 
+ 406      312000
+ 407              		.section	.text.Task1_task,"ax",%progbits
+ 408              		.align	2
+ 409              		.global	Task1_task
+ 410              		.code	16
+ 411              		.thumb_func
+ 413              	Task1_task:
+ 414              	.LFB5:
+  71:../Sources/mqx_tasks.c **** 
+  72:../Sources/mqx_tasks.c **** //Sensor
+  73:../Sources/mqx_tasks.c **** void Task1_task(uint32_t task_init_data)
+  74:../Sources/mqx_tasks.c **** {
+ 415              		.loc 1 74 0
+ 416              		.cfi_startproc
+ 417 0000 80B5     		push	{r7, lr}
+ 418              	.LCFI14:
+ 419              		.cfi_def_cfa_offset 8
+ 420              		.cfi_offset 7, -8
+ 421              		.cfi_offset 14, -4
+ 422 0002 82B0     		sub	sp, sp, #8
+ 423              	.LCFI15:
+ 424              		.cfi_def_cfa_offset 16
+ 425 0004 00AF     		add	r7, sp, #0
+ 426              	.LCFI16:
+ 427              		.cfi_def_cfa_register 7
+ 428 0006 7860     		str	r0, [r7, #4]
+  75:../Sources/mqx_tasks.c **** 	UserDataPtr = SS1_Init(NULL);
+ 429              		.loc 1 75 0
+ 430 0008 0020     		mov	r0, #0
+ 431 000a FFF7FEFF 		bl	SS1_Init
+ 432 000e 021C     		mov	r2, r0
+ 433 0010 144B     		ldr	r3, .L19
+ 434 0012 1A60     		str	r2, [r3]
+  76:../Sources/mqx_tasks.c **** 	Init();	
+ 435              		.loc 1 76 0
+ 436 0014 FFF7FEFF 		bl	Init
+ 437              	.L18:
+  77:../Sources/mqx_tasks.c ****   while(1) {
+  78:../Sources/mqx_tasks.c **** 	  SendString((unsigned char*)"Tarefa SENSOR\r\n", &deviceData);
+ 438              		.loc 1 78 0 discriminator 1
+ 439 0018 134A     		ldr	r2, .L19+4
+ 440 001a 144B     		ldr	r3, .L19+8
+ 441 001c 101C     		mov	r0, r2
+ 442 001e 191C     		mov	r1, r3
+ 443 0020 FFF7FEFF 		bl	SendString
+  79:../Sources/mqx_tasks.c **** 	 // WAIT1_Waitms(1000);
+  80:../Sources/mqx_tasks.c **** 	  
+  81:../Sources/mqx_tasks.c **** 	  
+  82:../Sources/mqx_tasks.c **** 	  //SPI
+  83:../Sources/mqx_tasks.c **** 	 /* _lwsem_wait(&sValor);
+  84:../Sources/mqx_tasks.c **** 	  SS1_ReceiveBlock(UserDataPtr,(LDD_TData *) &dado, sizeof(BufferPtr));
+  85:../Sources/mqx_tasks.c **** 	  SendChar(dado, &deviceData);
+  86:../Sources/mqx_tasks.c **** 	  _lwsem_post(&sValorMotor);
+  87:../Sources/mqx_tasks.c **** 	  WAIT1_Waitms(100);*/
+  88:../Sources/mqx_tasks.c **** 	  	  
+  89:../Sources/mqx_tasks.c **** 	    //Ultrasom
+  90:../Sources/mqx_tasks.c **** 	   _lwsem_wait(&sValor);
+ 444              		.loc 1 90 0 discriminator 1
+ 445 0024 124B     		ldr	r3, .L19+12
+ 446 0026 181C     		mov	r0, r3
+ 447 0028 FFF7FEFF 		bl	_lwsem_wait
+  91:../Sources/mqx_tasks.c **** 	 /* inicioUltrasonico2(); 
+  92:../Sources/mqx_tasks.c **** 	  c1 = sUltrasonico2();
+  93:../Sources/mqx_tasks.c **** 	  SendString((unsigned char*)"\nSensor 2 ", &deviceData);
+  94:../Sources/mqx_tasks.c **** 	  formataDado(c1);*/
+  95:../Sources/mqx_tasks.c **** 	  
+  96:../Sources/mqx_tasks.c **** 	  inicioUltrasonico();
+ 448              		.loc 1 96 0 discriminator 1
+ 449 002c FFF7FEFF 		bl	inicioUltrasonico
+  97:../Sources/mqx_tasks.c **** 	  c = sUltrasonico();
+ 450              		.loc 1 97 0 discriminator 1
+ 451 0030 FFF7FEFF 		bl	sUltrasonico
+ 452 0034 031C     		mov	r3, r0
+ 453 0036 1A1C     		mov	r2, r3
+ 454 0038 0E4B     		ldr	r3, .L19+16
+ 455 003a 1A80     		strh	r2, [r3]
+  98:../Sources/mqx_tasks.c **** 	  SendString((unsigned char*)"\nSensor 1 ", &deviceData);
+ 456              		.loc 1 98 0 discriminator 1
+ 457 003c 0E4A     		ldr	r2, .L19+20
+ 458 003e 0B4B     		ldr	r3, .L19+8
+ 459 0040 101C     		mov	r0, r2
+ 460 0042 191C     		mov	r1, r3
+ 461 0044 FFF7FEFF 		bl	SendString
+  99:../Sources/mqx_tasks.c **** 	  formataDado(c);
+ 462              		.loc 1 99 0 discriminator 1
+ 463 0048 0A4B     		ldr	r3, .L19+16
+ 464 004a 1B88     		ldrh	r3, [r3]
+ 465 004c 181C     		mov	r0, r3
+ 466 004e FFF7FEFF 		bl	formataDado
+ 100:../Sources/mqx_tasks.c **** 
+ 101:../Sources/mqx_tasks.c **** 	  
+ 102:../Sources/mqx_tasks.c **** 	 // _lwsem_post(&sValor);
+ 103:../Sources/mqx_tasks.c **** 	  _lwsem_post(&sValorMotor);
+ 467              		.loc 1 103 0 discriminator 1
+ 468 0052 0A4B     		ldr	r3, .L19+24
+ 469 0054 181C     		mov	r0, r3
+ 470 0056 FFF7FEFF 		bl	_lwsem_post
+ 104:../Sources/mqx_tasks.c **** 	  WAIT1_Waitms(200);
+ 471              		.loc 1 104 0 discriminator 1
+ 472 005a C820     		mov	r0, #200
+ 473 005c FFF7FEFF 		bl	WAIT1_Waitms
+ 105:../Sources/mqx_tasks.c **** 	  //SendString((unsigned char*)"Aqui\r\n", &deviceData);
+ 106:../Sources/mqx_tasks.c ****   }
+ 474              		.loc 1 106 0 discriminator 1
+ 475 0060 DAE7     		b	.L18
+ 476              	.L20:
+ 477 0062 C046     		.align	2
+ 478              	.L19:
+ 479 0064 00000000 		.word	UserDataPtr
+ 480 0068 08000000 		.word	.LC12
+ 481 006c 00000000 		.word	deviceData
+ 482 0070 00000000 		.word	sValor
+ 483 0074 00000000 		.word	c
+ 484 0078 18000000 		.word	.LC17
+ 485 007c 00000000 		.word	sValorMotor
+ 486              		.cfi_endproc
+ 487              	.LFE5:
+ 489              		.section	.rodata
+ 490 0023 00       		.align	2
+ 491              	.LC20:
+ 492 0024 54617265 		.ascii	"Tarefa MOTOR\015\012\000"
+ 492      6661204D 
+ 492      4F544F52 
+ 492      0D0A00
+ 493 0033 00       		.align	2
+ 494              	.LC25:
+ 495 0034 54617265 		.ascii	"Tarefa MOTOR - MUDAR ROTA\015\012\000"
+ 495      6661204D 
+ 495      4F544F52 
+ 495      202D204D 
+ 495      55444152 
+ 496              		.section	.text.Task2_task,"ax",%progbits
+ 497              		.align	2
+ 498              		.global	Task2_task
+ 499              		.code	16
+ 500              		.thumb_func
+ 502              	Task2_task:
+ 503              	.LFB6:
+ 107:../Sources/mqx_tasks.c **** }
+ 108:../Sources/mqx_tasks.c **** 
+ 109:../Sources/mqx_tasks.c **** //Motores
+ 110:../Sources/mqx_tasks.c **** void Task2_task(uint32_t task_init_data)
+ 111:../Sources/mqx_tasks.c **** {
+ 504              		.loc 1 111 0
+ 505              		.cfi_startproc
+ 506 0000 80B5     		push	{r7, lr}
+ 507              	.LCFI17:
+ 508              		.cfi_def_cfa_offset 8
+ 509              		.cfi_offset 7, -8
+ 510              		.cfi_offset 14, -4
+ 511 0002 82B0     		sub	sp, sp, #8
+ 512              	.LCFI18:
+ 513              		.cfi_def_cfa_offset 16
+ 514 0004 00AF     		add	r7, sp, #0
+ 515              	.LCFI19:
+ 516              		.cfi_def_cfa_register 7
+ 517 0006 7860     		str	r0, [r7, #4]
+ 518              	.L23:
+ 112:../Sources/mqx_tasks.c **** 	//Init();	
+ 113:../Sources/mqx_tasks.c ****   while(1) {
+ 114:../Sources/mqx_tasks.c **** 	  SendString((unsigned char*)"Tarefa MOTOR\r\n", &deviceData);
+ 519              		.loc 1 114 0
+ 520 0008 124A     		ldr	r2, .L24
+ 521 000a 134B     		ldr	r3, .L24+4
+ 522 000c 101C     		mov	r0, r2
+ 523 000e 191C     		mov	r1, r3
+ 524 0010 FFF7FEFF 		bl	SendString
+ 115:../Sources/mqx_tasks.c **** 	  _lwsem_wait(&sValorMotor);
+ 525              		.loc 1 115 0
+ 526 0014 114B     		ldr	r3, .L24+8
+ 527 0016 181C     		mov	r0, r3
+ 528 0018 FFF7FEFF 		bl	_lwsem_wait
+ 116:../Sources/mqx_tasks.c **** 	
+ 117:../Sources/mqx_tasks.c **** 	/*  //SPI
+ 118:../Sources/mqx_tasks.c **** 	  if(dado != 0){
+ 119:../Sources/mqx_tasks.c **** 		  SendChar(dado, &deviceData);
+ 120:../Sources/mqx_tasks.c **** 		  virar((int)dado);
+ 121:../Sources/mqx_tasks.c **** 	  }
+ 122:../Sources/mqx_tasks.c **** 	 */
+ 123:../Sources/mqx_tasks.c **** 	  //Ultrasom
+ 124:../Sources/mqx_tasks.c **** 	  if(c < 40 && c > 0 && c != 6){
+ 529              		.loc 1 124 0
+ 530 001c 104B     		ldr	r3, .L24+12
+ 531 001e 1B88     		ldrh	r3, [r3]
+ 532 0020 272B     		cmp	r3, #39
+ 533 0022 0FD8     		bhi	.L22
+ 534              		.loc 1 124 0 is_stmt 0 discriminator 1
+ 535 0024 0E4B     		ldr	r3, .L24+12
+ 536 0026 1B88     		ldrh	r3, [r3]
+ 537 0028 002B     		cmp	r3, #0
+ 538 002a 0BD0     		beq	.L22
+ 539 002c 0C4B     		ldr	r3, .L24+12
+ 540 002e 1B88     		ldrh	r3, [r3]
+ 541 0030 062B     		cmp	r3, #6
+ 542 0032 07D0     		beq	.L22
+ 125:../Sources/mqx_tasks.c **** 		  SendString((unsigned char*)"Tarefa MOTOR - MUDAR ROTA\r\n", &deviceData);
+ 543              		.loc 1 125 0 is_stmt 1
+ 544 0034 0B4A     		ldr	r2, .L24+16
+ 545 0036 084B     		ldr	r3, .L24+4
+ 546 0038 101C     		mov	r0, r2
+ 547 003a 191C     		mov	r1, r3
+ 548 003c FFF7FEFF 		bl	SendString
+ 126:../Sources/mqx_tasks.c **** 		  mudaRota();
+ 549              		.loc 1 126 0
+ 550 0040 FFF7FEFF 		bl	mudaRota
+ 551              	.L22:
+ 127:../Sources/mqx_tasks.c **** 	  }
+ 128:../Sources/mqx_tasks.c **** 	  
+ 129:../Sources/mqx_tasks.c **** 	  _lwsem_post(&sValor);
+ 552              		.loc 1 129 0
+ 553 0044 084B     		ldr	r3, .L24+20
+ 554 0046 181C     		mov	r0, r3
+ 555 0048 FFF7FEFF 		bl	_lwsem_post
+ 130:../Sources/mqx_tasks.c **** 	 // SendString((unsigned char*)"Tarefa FINAL MOTOR\r\n", &deviceData);
+ 131:../Sources/mqx_tasks.c **** 	  WAIT1_Waitms(200);
+ 556              		.loc 1 131 0
+ 557 004c C820     		mov	r0, #200
+ 558 004e FFF7FEFF 		bl	WAIT1_Waitms
+ 132:../Sources/mqx_tasks.c ****   }
+ 559              		.loc 1 132 0
+ 560 0052 D9E7     		b	.L23
+ 561              	.L25:
+ 562              		.align	2
+ 563              	.L24:
+ 564 0054 24000000 		.word	.LC20
+ 565 0058 00000000 		.word	deviceData
+ 566 005c 00000000 		.word	sValorMotor
+ 567 0060 00000000 		.word	c
+ 568 0064 34000000 		.word	.LC25
+ 569 0068 00000000 		.word	sValor
+ 570              		.cfi_endproc
+ 571              	.LFE6:
+ 573              		.text
+ 574              	.Letext0:
+ 575              		.file 2 "C:/Freescale/CW MCU v10.3/MCU/ARM_GCC_Support/ewl/EWL_C/include/cstdint"
+ 576              		.file 3 "C:/Users/LARM/workspace/MQX-Lite + SPI + Motor + Ultrassom/Generated_Code/PE_LDD.h"
+ 577              		.file 4 "C:/Users/LARM/workspace/MQX-Lite + SPI + Motor + Ultrassom/MQXLITE/psp/cortex_m/psptypes.
+ 578              		.file 5 "C:/Users/LARM/workspace/MQX-Lite + SPI + Motor + Ultrassom/MQXLITE/include/queue.h"
+ 579              		.file 6 "C:/Users/LARM/workspace/MQX-Lite + SPI + Motor + Ultrassom/MQXLITE/include/lwsem.h"
+ 580              		.file 7 "../Sources/Application.h"
+ 581              		.file 8 "C:/Users/LARM/workspace/MQX-Lite + SPI + Motor + Ultrassom/Generated_Code/IO_Map.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 mqx_tasks.c
+C:\Users\LARM\AppData\Local\Temp\ccXMaWCZ.s:18     .bss.deviceData:00000000 $d
+C:\Users\LARM\AppData\Local\Temp\ccXMaWCZ.s:21     .bss.deviceData:00000000 deviceData
+                            *COM*:00000002 c
+                            *COM*:00000002 c1
+                            *COM*:00000004 passo
+                            *COM*:0000001c sValor
+                            *COM*:0000001c sValorMotor
+C:\Users\LARM\AppData\Local\Temp\ccXMaWCZ.s:32     .bss.dado:00000000 dado
+C:\Users\LARM\AppData\Local\Temp\ccXMaWCZ.s:33     .bss.dado:00000000 $d
+                            *COM*:00000004 UserDataPtr
+C:\Users\LARM\AppData\Local\Temp\ccXMaWCZ.s:40     .bss.BufferPtr:00000000 BufferPtr
+C:\Users\LARM\AppData\Local\Temp\ccXMaWCZ.s:37     .bss.BufferPtr:00000000 $d
+C:\Users\LARM\AppData\Local\Temp\ccXMaWCZ.s:45     .rodata:00000000 $d
+C:\Users\LARM\AppData\Local\Temp\ccXMaWCZ.s:52     .text.formataDado:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\ccXMaWCZ.s:57     .text.formataDado:00000000 formataDado
+C:\Users\LARM\AppData\Local\Temp\ccXMaWCZ.s:236    .text.SendString:00000000 SendString
+C:\Users\LARM\AppData\Local\Temp\ccXMaWCZ.s:178    .text.SendChar:00000000 SendChar
+C:\Users\LARM\AppData\Local\Temp\ccXMaWCZ.s:167    .text.formataDado:000000bc $d
+C:\Users\LARM\AppData\Local\Temp\ccXMaWCZ.s:174    .text.SendChar:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\ccXMaWCZ.s:232    .text.SendString:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\ccXMaWCZ.s:281    .text.mString:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\ccXMaWCZ.s:286    .text.mString:00000000 mString
+C:\Users\LARM\AppData\Local\Temp\ccXMaWCZ.s:316    .text.mString:0000001c $d
+C:\Users\LARM\AppData\Local\Temp\ccXMaWCZ.s:321    .text.Init:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\ccXMaWCZ.s:325    .text.Init:00000000 Init
+C:\Users\LARM\AppData\Local\Temp\ccXMaWCZ.s:392    .text.Init:00000060 $d
+C:\Users\LARM\AppData\Local\Temp\ccXMaWCZ.s:408    .text.Task1_task:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\ccXMaWCZ.s:413    .text.Task1_task:00000000 Task1_task
+C:\Users\LARM\AppData\Local\Temp\ccXMaWCZ.s:479    .text.Task1_task:00000064 $d
+C:\Users\LARM\AppData\Local\Temp\ccXMaWCZ.s:497    .text.Task2_task:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\ccXMaWCZ.s:502    .text.Task2_task:00000000 Task2_task
+C:\Users\LARM\AppData\Local\Temp\ccXMaWCZ.s:564    .text.Task2_task:00000054 $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+__aeabi_uidiv
+__aeabi_uidivmod
+AS1_SendBlock
+_lwsem_create
+AS1_Init
+RxBuf_Init
+AS1_ReceiveBlock
+inicioUltrasonico
+inicioUltrasonico2
+RxBuf_Put
+SS1_Init
+_lwsem_wait
+sUltrasonico
+_lwsem_post
+WAIT1_Waitms
+mudaRota

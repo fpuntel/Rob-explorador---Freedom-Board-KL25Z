@@ -1,0 +1,3051 @@
+   1              		.cpu cortex-m0
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 34, 0
+  11              		.eabi_attribute 18, 4
+  12              		.code	16
+  13              		.file	"time_ticks.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text._time_delay_for,"ax",%progbits
+  18              		.align	2
+  19              		.global	_time_delay_for
+  20              		.code	16
+  21              		.thumb_func
+  23              	_time_delay_for:
+  24              	.LFB0:
+  25              		.file 1 "../MQXLITE/kernel/time_ticks.c"
+   1:../MQXLITE/kernel/time_ticks.c **** /*HEADER**********************************************************************
+   2:../MQXLITE/kernel/time_ticks.c ****  *
+   3:../MQXLITE/kernel/time_ticks.c ****  * Copyright (c) 2008 Freescale Semiconductor;
+   4:../MQXLITE/kernel/time_ticks.c ****  * All Rights Reserved
+   5:../MQXLITE/kernel/time_ticks.c ****  *
+   6:../MQXLITE/kernel/time_ticks.c ****  * Copyright (c) 2004-2008 Embedded Access Inc.;
+   7:../MQXLITE/kernel/time_ticks.c ****  * All Rights Reserved
+   8:../MQXLITE/kernel/time_ticks.c ****  *
+   9:../MQXLITE/kernel/time_ticks.c ****  * Copyright (c) 1989-2008 ARC International;
+  10:../MQXLITE/kernel/time_ticks.c ****  * All Rights Reserved
+  11:../MQXLITE/kernel/time_ticks.c ****  *
+  12:../MQXLITE/kernel/time_ticks.c ****  *****************************************************************************
+  13:../MQXLITE/kernel/time_ticks.c ****  *
+  14:../MQXLITE/kernel/time_ticks.c ****  * THIS SOFTWARE IS PROVIDED BY FREESCALE "AS IS" AND ANY EXPRESSED OR
+  15:../MQXLITE/kernel/time_ticks.c ****  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+  16:../MQXLITE/kernel/time_ticks.c ****  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+  17:../MQXLITE/kernel/time_ticks.c ****  * IN NO EVENT SHALL FREESCALE OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+  18:../MQXLITE/kernel/time_ticks.c ****  * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+  19:../MQXLITE/kernel/time_ticks.c ****  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  20:../MQXLITE/kernel/time_ticks.c ****  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  21:../MQXLITE/kernel/time_ticks.c ****  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  22:../MQXLITE/kernel/time_ticks.c ****  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+  23:../MQXLITE/kernel/time_ticks.c ****  * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+  24:../MQXLITE/kernel/time_ticks.c ****  * THE POSSIBILITY OF SUCH DAMAGE.
+  25:../MQXLITE/kernel/time_ticks.c ****  *
+  26:../MQXLITE/kernel/time_ticks.c ****  *****************************************************************************
+  27:../MQXLITE/kernel/time_ticks.c ****  *
+  28:../MQXLITE/kernel/time_ticks.c ****  * $FileName: time.c$
+  29:../MQXLITE/kernel/time_ticks.c ****  * $Version : 3.8.0.3$
+  30:../MQXLITE/kernel/time_ticks.c ****  * $Date    : Mar-14-2012$
+  31:../MQXLITE/kernel/time_ticks.c ****  *
+  32:../MQXLITE/kernel/time_ticks.c ****  * Comments:
+  33:../MQXLITE/kernel/time_ticks.c ****  *
+  34:../MQXLITE/kernel/time_ticks.c ****  *END************************************************************************/
+  35:../MQXLITE/kernel/time_ticks.c **** 
+  36:../MQXLITE/kernel/time_ticks.c **** #include "mqx_inc.h"
+  37:../MQXLITE/kernel/time_ticks.c **** 
+  38:../MQXLITE/kernel/time_ticks.c **** //#include "timer.h"
+  39:../MQXLITE/kernel/time_ticks.c **** //#include "timer_prv.h"
+  40:../MQXLITE/kernel/time_ticks.c **** /*
+  41:../MQXLITE/kernel/time_ticks.c ****  *  CR171 & CR172
+  42:../MQXLITE/kernel/time_ticks.c ****  *
+  43:../MQXLITE/kernel/time_ticks.c ****  *  For a time delay queues we insert the task into the queue after
+  44:../MQXLITE/kernel/time_ticks.c ****  *  all tasks of the same delay period.  We do not need to do this, we
+  45:../MQXLITE/kernel/time_ticks.c ****  *  can just insert the task into the queue before the task waiting
+  46:../MQXLITE/kernel/time_ticks.c ****  *  for the same time, as all tasks will be activated anyways.
+  47:../MQXLITE/kernel/time_ticks.c ****  *  Running the queues takes a long time, and is done with interrupts
+  48:../MQXLITE/kernel/time_ticks.c ****  *  disabled.  There will be a slight behavioural difference in that
+  49:../MQXLITE/kernel/time_ticks.c ****  *  two tasks that delay for the same time at the same priority level,
+  50:../MQXLITE/kernel/time_ticks.c ****  *  will not run in the order that they called delay.
+  51:../MQXLITE/kernel/time_ticks.c ****  *
+  52:../MQXLITE/kernel/time_ticks.c ****  *  Set the following define to 1 if you want the original FIFO
+  53:../MQXLITE/kernel/time_ticks.c ****  *  behavior where tasks are activated from the time delay queue into
+  54:../MQXLITE/kernel/time_ticks.c ****  *  the ready queue in FIFO order (longer enqueue search with
+  55:../MQXLITE/kernel/time_ticks.c ****  *  interrupts disabled).
+  56:../MQXLITE/kernel/time_ticks.c ****  */
+  57:../MQXLITE/kernel/time_ticks.c **** #ifndef MQX_DELAY_ENQUEUE_FIFO_ORDER
+  58:../MQXLITE/kernel/time_ticks.c **** #define MQX_DELAY_ENQUEUE_FIFO_ORDER    0  /* 0=LIFO, 1=FIFO */
+  59:../MQXLITE/kernel/time_ticks.c **** #endif
+  60:../MQXLITE/kernel/time_ticks.c **** #if MQX_DELAY_ENQUEUE_FIFO_ORDER
+  61:../MQXLITE/kernel/time_ticks.c **** #define MQX_DELAY_ENQUEUE_POLICY(result)  (result > 0)  /* FIFO original */
+  62:../MQXLITE/kernel/time_ticks.c **** #else
+  63:../MQXLITE/kernel/time_ticks.c **** #define MQX_DELAY_ENQUEUE_POLICY(result)  (result >= 0) /* LIFO faster */
+  64:../MQXLITE/kernel/time_ticks.c **** #endif
+  65:../MQXLITE/kernel/time_ticks.c **** 
+  66:../MQXLITE/kernel/time_ticks.c **** #if MQX_HAS_TICK
+  67:../MQXLITE/kernel/time_ticks.c **** /*!
+  68:../MQXLITE/kernel/time_ticks.c ****  * \brief Suspends the active task for the number of ticks (in tick time).
+  69:../MQXLITE/kernel/time_ticks.c ****  *
+  70:../MQXLITE/kernel/time_ticks.c ****  * The functions put the active task in the timeout queue for the specified time.
+  71:../MQXLITE/kernel/time_ticks.c ****  * \n Before the time expires, any task can remove the task from the timeout queue
+  72:../MQXLITE/kernel/time_ticks.c ****  * by calling _time_dequeue().
+  73:../MQXLITE/kernel/time_ticks.c ****  *
+  74:../MQXLITE/kernel/time_ticks.c ****  * \param[in] ticks Pointer to the minimum number of ticks to suspend the task.
+  75:../MQXLITE/kernel/time_ticks.c ****  *
+  76:../MQXLITE/kernel/time_ticks.c ****  * \warning Blocks the calling task.
+  77:../MQXLITE/kernel/time_ticks.c ****  *
+  78:../MQXLITE/kernel/time_ticks.c ****  * \see _time_delay
+  79:../MQXLITE/kernel/time_ticks.c ****  * \see _time_delay_ticks
+  80:../MQXLITE/kernel/time_ticks.c ****  * \see _time_delay_until
+  81:../MQXLITE/kernel/time_ticks.c ****  * \see _time_dequeue
+  82:../MQXLITE/kernel/time_ticks.c ****  * \see MQX_TICK_STRUCT
+  83:../MQXLITE/kernel/time_ticks.c ****  */
+  84:../MQXLITE/kernel/time_ticks.c **** void _time_delay_for
+  85:../MQXLITE/kernel/time_ticks.c **** (
+  86:../MQXLITE/kernel/time_ticks.c ****     register MQX_TICK_STRUCT_PTR ticks
+  87:../MQXLITE/kernel/time_ticks.c **** )
+  88:../MQXLITE/kernel/time_ticks.c **** { /* Body */
+  26              		.loc 1 88 0
+  27              		.cfi_startproc
+  28 0000 B0B5     		push	{r4, r5, r7, lr}
+  29              	.LCFI0:
+  30              		.cfi_def_cfa_offset 16
+  31              		.cfi_offset 4, -16
+  32              		.cfi_offset 5, -12
+  33              		.cfi_offset 7, -8
+  34              		.cfi_offset 14, -4
+  35 0002 00AF     		add	r7, sp, #0
+  36              	.LCFI1:
+  37              		.cfi_def_cfa_register 7
+  38 0004 021C     		mov	r2, r0
+  89:../MQXLITE/kernel/time_ticks.c ****     register KERNEL_DATA_STRUCT_PTR kernel_data;
+  90:../MQXLITE/kernel/time_ticks.c ****     register TD_STRUCT_PTR td_ptr;
+  91:../MQXLITE/kernel/time_ticks.c **** 
+  92:../MQXLITE/kernel/time_ticks.c ****     _GET_KERNEL_DATA(kernel_data);
+  39              		.loc 1 92 0
+  40 0006 184B     		ldr	r3, .L6
+  41 0008 1C68     		ldr	r4, [r3]
+  93:../MQXLITE/kernel/time_ticks.c **** 
+  94:../MQXLITE/kernel/time_ticks.c ****     _KLOGE2(KLOG_time_delay_for, ticks);
+  95:../MQXLITE/kernel/time_ticks.c **** 
+  96:../MQXLITE/kernel/time_ticks.c **** #if MQX_CHECK_ERRORS
+  97:../MQXLITE/kernel/time_ticks.c ****     if (ticks == NULL) {
+  42              		.loc 1 97 0
+  43 000a 03D1     		bne	.L2
+  98:../MQXLITE/kernel/time_ticks.c ****         _task_set_error(MQX_INVALID_PARAMETER);
+  44              		.loc 1 98 0
+  45 000c 0C20     		mov	r0, #12
+  46 000e FFF7FEFF 		bl	_task_set_error
+  99:../MQXLITE/kernel/time_ticks.c ****         _KLOGX2(KLOG_time_delay_for, MQX_INVALID_PARAMETER);
+ 100:../MQXLITE/kernel/time_ticks.c ****         return;
+  47              		.loc 1 100 0
+  48 0012 26E0     		b	.L1
+  49              	.L2:
+ 101:../MQXLITE/kernel/time_ticks.c ****     } /* Endif */
+ 102:../MQXLITE/kernel/time_ticks.c **** #endif
+ 103:../MQXLITE/kernel/time_ticks.c **** 
+ 104:../MQXLITE/kernel/time_ticks.c ****     td_ptr = kernel_data->ACTIVE_PTR;
+  50              		.loc 1 104 0
+  51 0014 E569     		ldr	r5, [r4, #28]
+ 105:../MQXLITE/kernel/time_ticks.c **** 
+ 106:../MQXLITE/kernel/time_ticks.c ****     _INT_DISABLE();
+  52              		.loc 1 106 0
+  53 0016 E369     		ldr	r3, [r4, #28]
+  54 0018 9B6C     		ldr	r3, [r3, #72]
+  55 001a 002B     		cmp	r3, #0
+  56 001c 00D1     		bne	.L4
+  57              		.loc 1 106 0 is_stmt 0 discriminator 1
+  58              	@ 106 "../MQXLITE/kernel/time_ticks.c" 1
+  59 001e 72B6     		cpsid i
+  60              	@ 0 "" 2
+  61              		.code	16
+  62              	.L4:
+  63              		.loc 1 106 0 discriminator 2
+  64 0020 E369     		ldr	r3, [r4, #28]
+  65 0022 996C     		ldr	r1, [r3, #72]
+  66 0024 0131     		add	r1, r1, #1
+  67 0026 9964     		str	r1, [r3, #72]
+ 107:../MQXLITE/kernel/time_ticks.c **** 
+ 108:../MQXLITE/kernel/time_ticks.c ****     /* Calculate time to wake up the task */
+ 109:../MQXLITE/kernel/time_ticks.c ****     PSP_ADD_TICKS(ticks, &kernel_data->TIME, &td_ptr->TIMEOUT);
+  68              		.loc 1 109 0 is_stmt 1 discriminator 2
+  69 0028 8823     		mov	r3, #136
+  70 002a 5B00     		lsl	r3, r3, #1
+  71 002c E118     		add	r1, r4, r3
+  72 002e 2B1C     		mov	r3, r5
+  73 0030 3833     		add	r3, r3, #56
+  74 0032 101C     		mov	r0, r2
+  75 0034 1A1C     		mov	r2, r3
+  76 0036 FFF7FEFF 		bl	_psp_add_ticks
+ 110:../MQXLITE/kernel/time_ticks.c **** 
+ 111:../MQXLITE/kernel/time_ticks.c ****     _time_delay_internal(td_ptr);
+  77              		.loc 1 111 0 discriminator 2
+  78 003a 281C     		mov	r0, r5
+  79 003c FFF7FEFF 		bl	_time_delay_internal
+ 112:../MQXLITE/kernel/time_ticks.c **** 
+ 113:../MQXLITE/kernel/time_ticks.c ****     _INT_ENABLE();
+  80              		.loc 1 113 0 discriminator 2
+  81 0040 E369     		ldr	r3, [r4, #28]
+  82 0042 9B6C     		ldr	r3, [r3, #72]
+  83 0044 002B     		cmp	r3, #0
+  84 0046 0CD0     		beq	.L1
+  85              		.loc 1 113 0 is_stmt 0 discriminator 1
+  86 0048 E369     		ldr	r3, [r4, #28]
+  87 004a 9A6C     		ldr	r2, [r3, #72]
+  88 004c 013A     		sub	r2, r2, #1
+  89 004e 9A64     		str	r2, [r3, #72]
+  90 0050 9B6C     		ldr	r3, [r3, #72]
+  91 0052 002B     		cmp	r3, #0
+  92 0054 05D1     		bne	.L1
+  93              		.loc 1 113 0 discriminator 2
+  94 0056 238B     		ldrh	r3, [r4, #24]
+  95 0058 002B     		cmp	r3, #0
+  96 005a 01D0     		beq	.L5
+  97              		.loc 1 113 0 discriminator 3
+  98              	@ 113 "../MQXLITE/kernel/time_ticks.c" 1
+  99 005c 62B6     		cpsie i
+ 100              	@ 0 "" 2
+ 101              		.code	16
+ 102 005e 00E0     		b	.L1
+ 103              	.L5:
+ 104              		.loc 1 113 0 discriminator 4
+ 105              	@ 113 "../MQXLITE/kernel/time_ticks.c" 1
+ 106 0060 62B6     		cpsie i
+ 107              	@ 0 "" 2
+ 108              		.code	16
+ 109              	.L1:
+ 114:../MQXLITE/kernel/time_ticks.c **** 
+ 115:../MQXLITE/kernel/time_ticks.c ****     _KLOGX1( KLOG_time_delay_for);
+ 116:../MQXLITE/kernel/time_ticks.c **** 
+ 117:../MQXLITE/kernel/time_ticks.c **** } /* Endbody */
+ 110              		.loc 1 117 0 is_stmt 1
+ 111 0062 BD46     		mov	sp, r7
+ 112              		@ sp needed for prologue
+ 113 0064 B0BD     		pop	{r4, r5, r7, pc}
+ 114              	.L7:
+ 115 0066 C046     		.align	2
+ 116              	.L6:
+ 117 0068 00000000 		.word	_mqx_kernel_data
+ 118              		.cfi_endproc
+ 119              	.LFE0:
+ 121              		.section	.text._time_delay_internal,"ax",%progbits
+ 122              		.align	2
+ 123              		.global	_time_delay_internal
+ 124              		.code	16
+ 125              		.thumb_func
+ 127              	_time_delay_internal:
+ 128              	.LFB1:
+ 118:../MQXLITE/kernel/time_ticks.c **** 
+ 119:../MQXLITE/kernel/time_ticks.c **** #endif /* MQX_HAS_TICK */
+ 120:../MQXLITE/kernel/time_ticks.c **** 
+ 121:../MQXLITE/kernel/time_ticks.c **** #if MQX_HAS_TICK
+ 122:../MQXLITE/kernel/time_ticks.c **** /*!
+ 123:../MQXLITE/kernel/time_ticks.c ****  * \private
+ 124:../MQXLITE/kernel/time_ticks.c ****  *
+ 125:../MQXLITE/kernel/time_ticks.c ****  * \brief Suspends the active task.
+ 126:../MQXLITE/kernel/time_ticks.c ****  *
+ 127:../MQXLITE/kernel/time_ticks.c ****  * This function puts a task on the timeout queue for the specified number of
+ 128:../MQXLITE/kernel/time_ticks.c ****  * ticks, or until removed by another task. Must be called int disabled.
+ 129:../MQXLITE/kernel/time_ticks.c ****  *
+ 130:../MQXLITE/kernel/time_ticks.c ****  * \param[in] td_ptr Pointer to the task to delay.
+ 131:../MQXLITE/kernel/time_ticks.c ****  *
+ 132:../MQXLITE/kernel/time_ticks.c ****  * \see TD_STRUCT
+ 133:../MQXLITE/kernel/time_ticks.c ****  */
+ 134:../MQXLITE/kernel/time_ticks.c **** void _time_delay_internal
+ 135:../MQXLITE/kernel/time_ticks.c ****    (
+ 136:../MQXLITE/kernel/time_ticks.c ****       register TD_STRUCT_PTR td_ptr
+ 137:../MQXLITE/kernel/time_ticks.c ****    )
+ 138:../MQXLITE/kernel/time_ticks.c **** { /* Body */
+ 129              		.loc 1 138 0
+ 130              		.cfi_startproc
+ 131 0000 F0B5     		push	{r4, r5, r6, r7, lr}
+ 132              	.LCFI2:
+ 133              		.cfi_def_cfa_offset 20
+ 134              		.cfi_offset 4, -20
+ 135              		.cfi_offset 5, -16
+ 136              		.cfi_offset 6, -12
+ 137              		.cfi_offset 7, -8
+ 138              		.cfi_offset 14, -4
+ 139 0002 5746     		mov	r7, sl
+ 140 0004 4E46     		mov	r6, r9
+ 141 0006 4546     		mov	r5, r8
+ 142 0008 E0B4     		push	{r5, r6, r7}
+ 143              	.LCFI3:
+ 144              		.cfi_def_cfa_offset 32
+ 145              		.cfi_offset 8, -32
+ 146              		.cfi_offset 9, -28
+ 147              		.cfi_offset 10, -24
+ 148 000a 84B0     		sub	sp, sp, #16
+ 149              	.LCFI4:
+ 150              		.cfi_def_cfa_offset 48
+ 151 000c 00AF     		add	r7, sp, #0
+ 152              	.LCFI5:
+ 153              		.cfi_def_cfa_register 7
+ 154 000e 031C     		mov	r3, r0
+ 139:../MQXLITE/kernel/time_ticks.c ****    register KERNEL_DATA_STRUCT_PTR  kernel_data;
+ 140:../MQXLITE/kernel/time_ticks.c ****    register TD_STRUCT_PTR           td2_ptr;
+ 141:../MQXLITE/kernel/time_ticks.c ****    register TD_STRUCT_PTR           tdprev_ptr;
+ 142:../MQXLITE/kernel/time_ticks.c ****    register _mqx_uint               count;
+ 143:../MQXLITE/kernel/time_ticks.c ****    register _mqx_int                result;
+ 144:../MQXLITE/kernel/time_ticks.c **** 
+ 145:../MQXLITE/kernel/time_ticks.c ****    _GET_KERNEL_DATA(kernel_data);
+ 155              		.loc 1 145 0
+ 156 0010 364A     		ldr	r2, .L22
+ 157 0012 1068     		ldr	r0, [r2]
+ 158 0014 8146     		mov	r9, r0
+ 146:../MQXLITE/kernel/time_ticks.c **** 
+ 147:../MQXLITE/kernel/time_ticks.c ****    /* Remove task from ready to run queue */
+ 148:../MQXLITE/kernel/time_ticks.c ****    tdprev_ptr = (TD_STRUCT_PTR)((pointer)&kernel_data->TIMEOUT_QUEUE);
+ 159              		.loc 1 148 0
+ 160 0016 4E46     		mov	r6, r9
+ 161 0018 2936     		add	r6, r6, #41
+ 162 001a FF36     		add	r6, r6, #255
+ 149:../MQXLITE/kernel/time_ticks.c ****    if ( _QUEUE_GET_SIZE(&kernel_data->TIMEOUT_QUEUE) ) {
+ 163              		.loc 1 149 0
+ 164 001c 4A46     		mov	r2, r9
+ 165 001e 2932     		add	r2, r2, #41
+ 166 0020 FF32     		add	r2, r2, #255
+ 167 0022 1289     		ldrh	r2, [r2, #8]
+ 168 0024 002A     		cmp	r2, #0
+ 169 0026 39D0     		beq	.L9
+ 150:../MQXLITE/kernel/time_ticks.c **** 
+ 151:../MQXLITE/kernel/time_ticks.c ****       /* Perform insertion sort by time */
+ 152:../MQXLITE/kernel/time_ticks.c ****       td2_ptr    = (TD_STRUCT_PTR)((pointer)kernel_data->TIMEOUT_QUEUE.NEXT);
+ 170              		.loc 1 152 0
+ 171 0028 9422     		mov	r2, #148
+ 172 002a 5200     		lsl	r2, r2, #1
+ 173 002c 4946     		mov	r1, r9
+ 174 002e 8858     		ldr	r0, [r1, r2]
+ 175 0030 8046     		mov	r8, r0
+ 153:../MQXLITE/kernel/time_ticks.c **** 
+ 154:../MQXLITE/kernel/time_ticks.c ****       /* SPR P171-0023-01 use pre-decrement on while loop */
+ 155:../MQXLITE/kernel/time_ticks.c ****       count      = _QUEUE_GET_SIZE(&kernel_data->TIMEOUT_QUEUE) + 1;
+ 176              		.loc 1 155 0
+ 177 0032 4A46     		mov	r2, r9
+ 178 0034 2932     		add	r2, r2, #41
+ 179 0036 FF32     		add	r2, r2, #255
+ 180 0038 1289     		ldrh	r2, [r2, #8]
+ 181 003a 0132     		add	r2, r2, #1
+ 182 003c 9246     		mov	sl, r2
+ 156:../MQXLITE/kernel/time_ticks.c ****       while ( --count ) {
+ 183              		.loc 1 156 0
+ 184 003e 25E0     		b	.L10
+ 185              	.L18:
+ 157:../MQXLITE/kernel/time_ticks.c ****       /* END SPR */
+ 158:../MQXLITE/kernel/time_ticks.c ****          result = PSP_CMP_TICKS(&td2_ptr->TIMEOUT, &td_ptr->TIMEOUT);
+ 186              		.loc 1 158 0
+ 187 0040 4246     		mov	r2, r8
+ 188 0042 3832     		add	r2, r2, #56
+ 189 0044 1468     		ldr	r4, [r2]
+ 190 0046 5568     		ldr	r5, [r2, #4]
+ 191 0048 1A1C     		mov	r2, r3
+ 192 004a 3832     		add	r2, r2, #56
+ 193 004c 1168     		ldr	r1, [r2]
+ 194 004e 5268     		ldr	r2, [r2, #4]
+ 195 0050 9542     		cmp	r5, r2
+ 196 0052 14D8     		bhi	.L11
+ 197 0054 01D1     		bne	.L19
+ 198 0056 8C42     		cmp	r4, r1
+ 199 0058 11D8     		bhi	.L11
+ 200              	.L19:
+ 201              		.loc 1 158 0 is_stmt 0 discriminator 1
+ 202 005a 4246     		mov	r2, r8
+ 203 005c 3832     		add	r2, r2, #56
+ 204 005e 1168     		ldr	r1, [r2]
+ 205 0060 5268     		ldr	r2, [r2, #4]
+ 206 0062 181C     		mov	r0, r3
+ 207 0064 3830     		add	r0, r0, #56
+ 208 0066 0468     		ldr	r4, [r0]
+ 209 0068 4568     		ldr	r5, [r0, #4]
+ 210 006a 9542     		cmp	r5, r2
+ 211 006c 02D8     		bhi	.L20
+ 212 006e 04D1     		bne	.L13
+ 213 0070 8C42     		cmp	r4, r1
+ 214 0072 02D9     		bls	.L13
+ 215              	.L20:
+ 216              		.loc 1 158 0 discriminator 3
+ 217 0074 0122     		mov	r2, #1
+ 218 0076 5242     		neg	r2, r2
+ 219 0078 00E0     		b	.L15
+ 220              	.L13:
+ 221              		.loc 1 158 0 discriminator 4
+ 222 007a 0022     		mov	r2, #0
+ 223              	.L15:
+ 224 007c 00E0     		b	.L16
+ 225              	.L11:
+ 226              		.loc 1 158 0 discriminator 2
+ 227 007e 0122     		mov	r2, #1
+ 228              	.L16:
+ 229              		.loc 1 158 0 discriminator 6
+ 230 0080 141C     		mov	r4, r2
+ 159:../MQXLITE/kernel/time_ticks.c ****          if (MQX_DELAY_ENQUEUE_POLICY(result)) {
+ 231              		.loc 1 159 0 is_stmt 1 discriminator 6
+ 232 0082 0AD5     		bpl	.L21
+ 233              	.L17:
+ 160:../MQXLITE/kernel/time_ticks.c ****             /* Enqueue before td2_ptr */
+ 161:../MQXLITE/kernel/time_ticks.c ****             break;
+ 162:../MQXLITE/kernel/time_ticks.c ****          } /* Endif */
+ 163:../MQXLITE/kernel/time_ticks.c **** 
+ 164:../MQXLITE/kernel/time_ticks.c ****          tdprev_ptr = td2_ptr;
+ 234              		.loc 1 164 0
+ 235 0084 4646     		mov	r6, r8
+ 165:../MQXLITE/kernel/time_ticks.c ****          td2_ptr    = td2_ptr->TD_NEXT;
+ 236              		.loc 1 165 0
+ 237 0086 4246     		mov	r2, r8
+ 238 0088 1168     		ldr	r1, [r2]
+ 239 008a 8846     		mov	r8, r1
+ 240              	.L10:
+ 156:../MQXLITE/kernel/time_ticks.c ****       while ( --count ) {
+ 241              		.loc 1 156 0 discriminator 1
+ 242 008c 0120     		mov	r0, #1
+ 243 008e 4042     		neg	r0, r0
+ 244 0090 8244     		add	sl, sl, r0
+ 245 0092 5146     		mov	r1, sl
+ 246 0094 0029     		cmp	r1, #0
+ 247 0096 D3D1     		bne	.L18
+ 248 0098 00E0     		b	.L9
+ 249              	.L21:
+ 161:../MQXLITE/kernel/time_ticks.c ****             break;
+ 250              		.loc 1 161 0
+ 251 009a C046     		mov	r8, r8
+ 252              	.L9:
+ 253              	.LBB2:
+ 166:../MQXLITE/kernel/time_ticks.c ****       } /* Endwhile */
+ 167:../MQXLITE/kernel/time_ticks.c **** 
+ 168:../MQXLITE/kernel/time_ticks.c ****    } /* Endif */
+ 169:../MQXLITE/kernel/time_ticks.c **** 
+ 170:../MQXLITE/kernel/time_ticks.c ****    /* Remove from ready queue */
+ 171:../MQXLITE/kernel/time_ticks.c ****    _QUEUE_UNLINK(td_ptr);
+ 254              		.loc 1 171 0
+ 255 009c 5A68     		ldr	r2, [r3, #4]
+ 256 009e FA60     		str	r2, [r7, #12]
+ 257 00a0 1A68     		ldr	r2, [r3]
+ 258 00a2 BA60     		str	r2, [r7, #8]
+ 259 00a4 FA68     		ldr	r2, [r7, #12]
+ 260 00a6 B968     		ldr	r1, [r7, #8]
+ 261 00a8 1160     		str	r1, [r2]
+ 262 00aa BA68     		ldr	r2, [r7, #8]
+ 263 00ac F968     		ldr	r1, [r7, #12]
+ 264 00ae 5160     		str	r1, [r2, #4]
+ 265              	.LBE2:
+ 266              	.LBB3:
+ 172:../MQXLITE/kernel/time_ticks.c **** 
+ 173:../MQXLITE/kernel/time_ticks.c ****    /* Insert into timeout queue */
+ 174:../MQXLITE/kernel/time_ticks.c ****    _QUEUE_INSERT(&kernel_data->TIMEOUT_QUEUE,tdprev_ptr,td_ptr);
+ 267              		.loc 1 174 0
+ 268 00b0 3268     		ldr	r2, [r6]
+ 269 00b2 7A60     		str	r2, [r7, #4]
+ 270 00b4 7A68     		ldr	r2, [r7, #4]
+ 271 00b6 1A60     		str	r2, [r3]
+ 272 00b8 3360     		str	r3, [r6]
+ 273 00ba 5E60     		str	r6, [r3, #4]
+ 274 00bc 7A68     		ldr	r2, [r7, #4]
+ 275 00be 5360     		str	r3, [r2, #4]
+ 276              	.LBE3:
+ 277 00c0 4A46     		mov	r2, r9
+ 278 00c2 2932     		add	r2, r2, #41
+ 279 00c4 FF32     		add	r2, r2, #255
+ 280 00c6 1189     		ldrh	r1, [r2, #8]
+ 281 00c8 0131     		add	r1, r1, #1
+ 282 00ca 89B2     		uxth	r1, r1
+ 283 00cc 1181     		strh	r1, [r2, #8]
+ 175:../MQXLITE/kernel/time_ticks.c **** 
+ 176:../MQXLITE/kernel/time_ticks.c ****    td_ptr->STATE |= IS_ON_TIMEOUT_Q;
+ 284              		.loc 1 176 0
+ 285 00ce 9A68     		ldr	r2, [r3, #8]
+ 286 00d0 8021     		mov	r1, #128
+ 287 00d2 4900     		lsl	r1, r1, #1
+ 288 00d4 0A43     		orr	r2, r1
+ 289 00d6 9A60     		str	r2, [r3, #8]
+ 177:../MQXLITE/kernel/time_ticks.c **** 
+ 178:../MQXLITE/kernel/time_ticks.c ****    _sched_execute_scheduler_internal();
+ 290              		.loc 1 178 0
+ 291 00d8 FFF7FEFF 		bl	_sched_execute_scheduler_internal
+ 179:../MQXLITE/kernel/time_ticks.c **** 
+ 180:../MQXLITE/kernel/time_ticks.c **** } /* Endbody */
+ 292              		.loc 1 180 0
+ 293 00dc BD46     		mov	sp, r7
+ 294 00de 04B0     		add	sp, sp, #16
+ 295              		@ sp needed for prologue
+ 296 00e0 1CBC     		pop	{r2, r3, r4}
+ 297 00e2 9046     		mov	r8, r2
+ 298 00e4 9946     		mov	r9, r3
+ 299 00e6 A246     		mov	sl, r4
+ 300 00e8 F0BD     		pop	{r4, r5, r6, r7, pc}
+ 301              	.L23:
+ 302 00ea C046     		.align	2
+ 303              	.L22:
+ 304 00ec 00000000 		.word	_mqx_kernel_data
+ 305              		.cfi_endproc
+ 306              	.LFE1:
+ 308              		.section	.text._time_delay_ticks,"ax",%progbits
+ 309              		.align	2
+ 310              		.global	_time_delay_ticks
+ 311              		.code	16
+ 312              		.thumb_func
+ 314              	_time_delay_ticks:
+ 315              	.LFB2:
+ 181:../MQXLITE/kernel/time_ticks.c **** #endif /* MQX_HAS_TICK */
+ 182:../MQXLITE/kernel/time_ticks.c **** 
+ 183:../MQXLITE/kernel/time_ticks.c **** #if MQX_HAS_TICK
+ 184:../MQXLITE/kernel/time_ticks.c **** /*!
+ 185:../MQXLITE/kernel/time_ticks.c ****  * \brief Suspends the active task for the number of ticks.
+ 186:../MQXLITE/kernel/time_ticks.c ****  *
+ 187:../MQXLITE/kernel/time_ticks.c ****  * The functions put the active task in the timeout queue for the specified time.
+ 188:../MQXLITE/kernel/time_ticks.c ****  * \n Before the time expires, any task can remove the task from the timeout queue
+ 189:../MQXLITE/kernel/time_ticks.c ****  * by calling _time_dequeue().
+ 190:../MQXLITE/kernel/time_ticks.c ****  *
+ 191:../MQXLITE/kernel/time_ticks.c ****  * \param[in] time_in_ticks Minimum number of ticks to suspend the task.
+ 192:../MQXLITE/kernel/time_ticks.c ****  *
+ 193:../MQXLITE/kernel/time_ticks.c ****  * \warning Blocks the calling task.
+ 194:../MQXLITE/kernel/time_ticks.c ****  *
+ 195:../MQXLITE/kernel/time_ticks.c ****  * \see _time_delay
+ 196:../MQXLITE/kernel/time_ticks.c ****  * \see _time_delay_for
+ 197:../MQXLITE/kernel/time_ticks.c ****  * \see _time_delay_until
+ 198:../MQXLITE/kernel/time_ticks.c ****  * \see _time_dequeue
+ 199:../MQXLITE/kernel/time_ticks.c ****  */
+ 200:../MQXLITE/kernel/time_ticks.c **** void _time_delay_ticks
+ 201:../MQXLITE/kernel/time_ticks.c **** (
+ 202:../MQXLITE/kernel/time_ticks.c ****     register _mqx_uint time_in_ticks
+ 203:../MQXLITE/kernel/time_ticks.c **** )
+ 204:../MQXLITE/kernel/time_ticks.c **** { /* Body */
+ 316              		.loc 1 204 0
+ 317              		.cfi_startproc
+ 318 0000 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 319              	.LCFI6:
+ 320              		.cfi_def_cfa_offset 24
+ 321              		.cfi_offset 3, -24
+ 322              		.cfi_offset 4, -20
+ 323              		.cfi_offset 5, -16
+ 324              		.cfi_offset 6, -12
+ 325              		.cfi_offset 7, -8
+ 326              		.cfi_offset 14, -4
+ 327 0002 00AF     		add	r7, sp, #0
+ 328              	.LCFI7:
+ 329              		.cfi_def_cfa_register 7
+ 330 0004 061C     		mov	r6, r0
+ 205:../MQXLITE/kernel/time_ticks.c ****     register KERNEL_DATA_STRUCT_PTR kernel_data;
+ 206:../MQXLITE/kernel/time_ticks.c ****     register TD_STRUCT_PTR td_ptr;
+ 207:../MQXLITE/kernel/time_ticks.c **** 
+ 208:../MQXLITE/kernel/time_ticks.c **** #if MQX_ENABLE_USER_MODE && MQX_ENABLE_USER_STDAPI
+ 209:../MQXLITE/kernel/time_ticks.c ****     if (MQX_RUN_IN_USER_MODE) {
+ 210:../MQXLITE/kernel/time_ticks.c ****         _usr_time_delay_ticks(time_in_ticks);
+ 211:../MQXLITE/kernel/time_ticks.c ****         return;
+ 212:../MQXLITE/kernel/time_ticks.c ****     }
+ 213:../MQXLITE/kernel/time_ticks.c **** #endif
+ 214:../MQXLITE/kernel/time_ticks.c **** 
+ 215:../MQXLITE/kernel/time_ticks.c ****     _GET_KERNEL_DATA(kernel_data);
+ 331              		.loc 1 215 0
+ 332 0006 1A49     		ldr	r1, .L30
+ 333 0008 0C68     		ldr	r4, [r1]
+ 216:../MQXLITE/kernel/time_ticks.c **** 
+ 217:../MQXLITE/kernel/time_ticks.c ****     _KLOGE2(KLOG_time_delay_ticks, time_in_ticks);
+ 218:../MQXLITE/kernel/time_ticks.c **** 
+ 219:../MQXLITE/kernel/time_ticks.c ****     if ( !time_in_ticks ) {
+ 334              		.loc 1 219 0
+ 335 000a 2ED0     		beq	.L29
+ 336              	.L25:
+ 220:../MQXLITE/kernel/time_ticks.c ****         _KLOGX1(KLOG_time_delay_ticks);
+ 221:../MQXLITE/kernel/time_ticks.c ****         return;
+ 222:../MQXLITE/kernel/time_ticks.c ****     } /* Endif */
+ 223:../MQXLITE/kernel/time_ticks.c **** 
+ 224:../MQXLITE/kernel/time_ticks.c ****     td_ptr = kernel_data->ACTIVE_PTR;
+ 337              		.loc 1 224 0
+ 338 000c E569     		ldr	r5, [r4, #28]
+ 225:../MQXLITE/kernel/time_ticks.c **** 
+ 226:../MQXLITE/kernel/time_ticks.c ****     _INT_DISABLE();
+ 339              		.loc 1 226 0
+ 340 000e E169     		ldr	r1, [r4, #28]
+ 341 0010 896C     		ldr	r1, [r1, #72]
+ 342 0012 0029     		cmp	r1, #0
+ 343 0014 00D1     		bne	.L27
+ 344              		.loc 1 226 0 is_stmt 0 discriminator 1
+ 345              	@ 226 "../MQXLITE/kernel/time_ticks.c" 1
+ 346 0016 72B6     		cpsid i
+ 347              	@ 0 "" 2
+ 348              		.code	16
+ 349              	.L27:
+ 350              		.loc 1 226 0 discriminator 2
+ 351 0018 E169     		ldr	r1, [r4, #28]
+ 352 001a 886C     		ldr	r0, [r1, #72]
+ 353 001c 0130     		add	r0, r0, #1
+ 354 001e 8864     		str	r0, [r1, #72]
+ 227:../MQXLITE/kernel/time_ticks.c **** 
+ 228:../MQXLITE/kernel/time_ticks.c ****     PSP_ADD_TICKS_TO_TICK_STRUCT(&kernel_data->TIME, time_in_ticks, &td_ptr->TIMEOUT);
+ 355              		.loc 1 228 0 is_stmt 1 discriminator 2
+ 356 0020 3821     		mov	r1, #56
+ 357 0022 4919     		add	r1, r1, r5
+ 358 0024 8C46     		mov	ip, r1
+ 359 0026 8823     		mov	r3, #136
+ 360 0028 5B00     		lsl	r3, r3, #1
+ 361 002a E118     		add	r1, r4, r3
+ 362 002c 0868     		ldr	r0, [r1]
+ 363 002e 4968     		ldr	r1, [r1, #4]
+ 364 0030 321C     		mov	r2, r6
+ 365 0032 0026     		mov	r6, #0
+ 366 0034 331C     		mov	r3, r6
+ 367 0036 1218     		add	r2, r2, r0
+ 368 0038 4B41     		adc	r3, r3, r1
+ 369 003a 6146     		mov	r1, ip
+ 370 003c 0A60     		str	r2, [r1]
+ 371 003e 4B60     		str	r3, [r1, #4]
+ 229:../MQXLITE/kernel/time_ticks.c **** 
+ 230:../MQXLITE/kernel/time_ticks.c ****     _time_delay_internal(td_ptr);
+ 372              		.loc 1 230 0 discriminator 2
+ 373 0040 281C     		mov	r0, r5
+ 374 0042 FFF7FEFF 		bl	_time_delay_internal
+ 231:../MQXLITE/kernel/time_ticks.c **** 
+ 232:../MQXLITE/kernel/time_ticks.c ****     _INT_ENABLE();
+ 375              		.loc 1 232 0 discriminator 2
+ 376 0046 E369     		ldr	r3, [r4, #28]
+ 377 0048 9B6C     		ldr	r3, [r3, #72]
+ 378 004a 002B     		cmp	r3, #0
+ 379 004c 0ED0     		beq	.L24
+ 380              		.loc 1 232 0 is_stmt 0 discriminator 1
+ 381 004e E369     		ldr	r3, [r4, #28]
+ 382 0050 9A6C     		ldr	r2, [r3, #72]
+ 383 0052 013A     		sub	r2, r2, #1
+ 384 0054 9A64     		str	r2, [r3, #72]
+ 385 0056 9B6C     		ldr	r3, [r3, #72]
+ 386 0058 002B     		cmp	r3, #0
+ 387 005a 07D1     		bne	.L24
+ 388              		.loc 1 232 0 discriminator 2
+ 389 005c 238B     		ldrh	r3, [r4, #24]
+ 390 005e 002B     		cmp	r3, #0
+ 391 0060 01D0     		beq	.L28
+ 392              		.loc 1 232 0 discriminator 3
+ 393              	@ 232 "../MQXLITE/kernel/time_ticks.c" 1
+ 394 0062 62B6     		cpsie i
+ 395              	@ 0 "" 2
+ 396              		.code	16
+ 397 0064 02E0     		b	.L24
+ 398              	.L28:
+ 399              		.loc 1 232 0 discriminator 4
+ 400              	@ 232 "../MQXLITE/kernel/time_ticks.c" 1
+ 401 0066 62B6     		cpsie i
+ 402              	@ 0 "" 2
+ 403              		.code	16
+ 404 0068 00E0     		b	.L24
+ 405              	.L29:
+ 221:../MQXLITE/kernel/time_ticks.c ****         return;
+ 406              		.loc 1 221 0 is_stmt 1
+ 407 006a C046     		mov	r8, r8
+ 408              	.L24:
+ 233:../MQXLITE/kernel/time_ticks.c ****     _KLOGX1(KLOG_time_delay_ticks);
+ 234:../MQXLITE/kernel/time_ticks.c **** 
+ 235:../MQXLITE/kernel/time_ticks.c **** }
+ 409              		.loc 1 235 0
+ 410 006c BD46     		mov	sp, r7
+ 411              		@ sp needed for prologue
+ 412 006e F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 413              	.L31:
+ 414              		.align	2
+ 415              	.L30:
+ 416 0070 00000000 		.word	_mqx_kernel_data
+ 417              		.cfi_endproc
+ 418              	.LFE2:
+ 420              		.section	.text._time_delay_until,"ax",%progbits
+ 421              		.align	2
+ 422              		.global	_time_delay_until
+ 423              		.code	16
+ 424              		.thumb_func
+ 426              	_time_delay_until:
+ 427              	.LFB3:
+ 236:../MQXLITE/kernel/time_ticks.c **** 
+ 237:../MQXLITE/kernel/time_ticks.c **** #if MQX_ENABLE_USER_MODE
+ 238:../MQXLITE/kernel/time_ticks.c **** /*!
+ 239:../MQXLITE/kernel/time_ticks.c ****  * \brief Suspends the active task for the number of ticks.
+ 240:../MQXLITE/kernel/time_ticks.c ****  *
+ 241:../MQXLITE/kernel/time_ticks.c ****  * This function is an equivalent to the _time_delay_ticks() API call but it can
+ 242:../MQXLITE/kernel/time_ticks.c ****  * be executed from within the User task or other code running in the CPU User
+ 243:../MQXLITE/kernel/time_ticks.c ****  * mode. Parameters passed to this function by pointer are required to meet the
+ 244:../MQXLITE/kernel/time_ticks.c ****  * memory protection requirements as described in the parameter list below.
+ 245:../MQXLITE/kernel/time_ticks.c ****  *
+ 246:../MQXLITE/kernel/time_ticks.c ****  * \param[in] time_in_ticks Minimum number of ticks to suspend the task.
+ 247:../MQXLITE/kernel/time_ticks.c ****  *
+ 248:../MQXLITE/kernel/time_ticks.c ****  * \warning Blocks the calling task.
+ 249:../MQXLITE/kernel/time_ticks.c ****  *
+ 250:../MQXLITE/kernel/time_ticks.c ****  * \see _time_delay_ticks
+ 251:../MQXLITE/kernel/time_ticks.c ****  * \see _usr_time_delay
+ 252:../MQXLITE/kernel/time_ticks.c ****  * \see _usr_time_get_elapsed_ticks
+ 253:../MQXLITE/kernel/time_ticks.c ****  */
+ 254:../MQXLITE/kernel/time_ticks.c **** void _usr_time_delay_ticks
+ 255:../MQXLITE/kernel/time_ticks.c **** (
+ 256:../MQXLITE/kernel/time_ticks.c ****     register _mqx_uint time_in_ticks
+ 257:../MQXLITE/kernel/time_ticks.c **** )
+ 258:../MQXLITE/kernel/time_ticks.c **** {
+ 259:../MQXLITE/kernel/time_ticks.c ****     MQX_API_CALL_PARAMS params = {(uint_32)time_in_ticks, 0, 0, 0, 0};
+ 260:../MQXLITE/kernel/time_ticks.c ****     _mqx_api_call(MQX_API_TIME_DELAY_TICKS, &params);
+ 261:../MQXLITE/kernel/time_ticks.c **** }
+ 262:../MQXLITE/kernel/time_ticks.c **** 
+ 263:../MQXLITE/kernel/time_ticks.c **** #endif /* MQX_ENABLE_USER_MODE */
+ 264:../MQXLITE/kernel/time_ticks.c **** #endif /* MQX_HAS_TICK */
+ 265:../MQXLITE/kernel/time_ticks.c **** 
+ 266:../MQXLITE/kernel/time_ticks.c **** #if MQX_HAS_TICK
+ 267:../MQXLITE/kernel/time_ticks.c **** /*!
+ 268:../MQXLITE/kernel/time_ticks.c ****  * \brief Suspends the active task until the specified time (in tick time).
+ 269:../MQXLITE/kernel/time_ticks.c ****  *
+ 270:../MQXLITE/kernel/time_ticks.c ****  * The functions put the active task in the timeout queue until the specified tick
+ 271:../MQXLITE/kernel/time_ticks.c ****  * count is reached.
+ 272:../MQXLITE/kernel/time_ticks.c ****  * \n Before the time expires, any task can remove the task from the timeout queue
+ 273:../MQXLITE/kernel/time_ticks.c ****  * by calling _time_dequeue().
+ 274:../MQXLITE/kernel/time_ticks.c ****  *
+ 275:../MQXLITE/kernel/time_ticks.c ****  * \param[in] ticks Pointer to the time (in tick time) until which to suspend the task.
+ 276:../MQXLITE/kernel/time_ticks.c ****  *
+ 277:../MQXLITE/kernel/time_ticks.c ****  * \warning Blocks the calling task.
+ 278:../MQXLITE/kernel/time_ticks.c ****  *
+ 279:../MQXLITE/kernel/time_ticks.c ****  * \see _time_delay
+ 280:../MQXLITE/kernel/time_ticks.c ****  * \see _time_delay_for
+ 281:../MQXLITE/kernel/time_ticks.c ****  * \see _time_delay_ticks
+ 282:../MQXLITE/kernel/time_ticks.c ****  * \see _time_dequeue
+ 283:../MQXLITE/kernel/time_ticks.c ****  * \see MQX_TICK_STRUCT
+ 284:../MQXLITE/kernel/time_ticks.c ****  */
+ 285:../MQXLITE/kernel/time_ticks.c **** void _time_delay_until
+ 286:../MQXLITE/kernel/time_ticks.c **** (
+ 287:../MQXLITE/kernel/time_ticks.c ****     register MQX_TICK_STRUCT_PTR ticks
+ 288:../MQXLITE/kernel/time_ticks.c **** )
+ 289:../MQXLITE/kernel/time_ticks.c **** { /* Body */
+ 428              		.loc 1 289 0
+ 429              		.cfi_startproc
+ 430 0000 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 431              	.LCFI8:
+ 432              		.cfi_def_cfa_offset 24
+ 433              		.cfi_offset 3, -24
+ 434              		.cfi_offset 4, -20
+ 435              		.cfi_offset 5, -16
+ 436              		.cfi_offset 6, -12
+ 437              		.cfi_offset 7, -8
+ 438              		.cfi_offset 14, -4
+ 439 0002 00AF     		add	r7, sp, #0
+ 440              	.LCFI9:
+ 441              		.cfi_def_cfa_register 7
+ 442 0004 021C     		mov	r2, r0
+ 290:../MQXLITE/kernel/time_ticks.c ****     register KERNEL_DATA_STRUCT_PTR kernel_data;
+ 291:../MQXLITE/kernel/time_ticks.c ****     register TD_STRUCT_PTR td_ptr;
+ 292:../MQXLITE/kernel/time_ticks.c **** 
+ 293:../MQXLITE/kernel/time_ticks.c ****     _GET_KERNEL_DATA(kernel_data);
+ 443              		.loc 1 293 0
+ 444 0006 154B     		ldr	r3, .L37
+ 445 0008 1C68     		ldr	r4, [r3]
+ 294:../MQXLITE/kernel/time_ticks.c **** 
+ 295:../MQXLITE/kernel/time_ticks.c ****     _KLOGE2(KLOG_time_delay_until, ticks);
+ 296:../MQXLITE/kernel/time_ticks.c **** 
+ 297:../MQXLITE/kernel/time_ticks.c **** #if MQX_CHECK_ERRORS
+ 298:../MQXLITE/kernel/time_ticks.c ****     if (ticks == NULL) {
+ 446              		.loc 1 298 0
+ 447 000a 03D1     		bne	.L33
+ 299:../MQXLITE/kernel/time_ticks.c ****         _task_set_error(MQX_INVALID_PARAMETER);
+ 448              		.loc 1 299 0
+ 449 000c 0C20     		mov	r0, #12
+ 450 000e FFF7FEFF 		bl	_task_set_error
+ 300:../MQXLITE/kernel/time_ticks.c ****         _KLOGX2(KLOG_time_delay_until, MQX_INVALID_PARAMETER);
+ 301:../MQXLITE/kernel/time_ticks.c ****         return;
+ 451              		.loc 1 301 0
+ 452 0012 21E0     		b	.L32
+ 453              	.L33:
+ 302:../MQXLITE/kernel/time_ticks.c ****     } /* Endif */
+ 303:../MQXLITE/kernel/time_ticks.c **** #endif
+ 304:../MQXLITE/kernel/time_ticks.c **** 
+ 305:../MQXLITE/kernel/time_ticks.c ****     td_ptr = kernel_data->ACTIVE_PTR;
+ 454              		.loc 1 305 0
+ 455 0014 E569     		ldr	r5, [r4, #28]
+ 306:../MQXLITE/kernel/time_ticks.c **** 
+ 307:../MQXLITE/kernel/time_ticks.c ****     /* Calculate time to wake up the task */
+ 308:../MQXLITE/kernel/time_ticks.c ****     td_ptr->TIMEOUT = *ticks;
+ 456              		.loc 1 308 0
+ 457 0016 2B1C     		mov	r3, r5
+ 458 0018 3833     		add	r3, r3, #56
+ 459 001a 43CA     		ldmia	r2!, {r0, r1, r6}
+ 460 001c 43C3     		stmia	r3!, {r0, r1, r6}
+ 309:../MQXLITE/kernel/time_ticks.c **** 
+ 310:../MQXLITE/kernel/time_ticks.c ****     _INT_DISABLE();
+ 461              		.loc 1 310 0
+ 462 001e E369     		ldr	r3, [r4, #28]
+ 463 0020 9B6C     		ldr	r3, [r3, #72]
+ 464 0022 002B     		cmp	r3, #0
+ 465 0024 00D1     		bne	.L35
+ 466              		.loc 1 310 0 is_stmt 0 discriminator 1
+ 467              	@ 310 "../MQXLITE/kernel/time_ticks.c" 1
+ 468 0026 72B6     		cpsid i
+ 469              	@ 0 "" 2
+ 470              		.code	16
+ 471              	.L35:
+ 472              		.loc 1 310 0 discriminator 2
+ 473 0028 E369     		ldr	r3, [r4, #28]
+ 474 002a 9A6C     		ldr	r2, [r3, #72]
+ 475 002c 0132     		add	r2, r2, #1
+ 476 002e 9A64     		str	r2, [r3, #72]
+ 311:../MQXLITE/kernel/time_ticks.c **** 
+ 312:../MQXLITE/kernel/time_ticks.c ****     _time_delay_internal(td_ptr);
+ 477              		.loc 1 312 0 is_stmt 1 discriminator 2
+ 478 0030 281C     		mov	r0, r5
+ 479 0032 FFF7FEFF 		bl	_time_delay_internal
+ 313:../MQXLITE/kernel/time_ticks.c **** 
+ 314:../MQXLITE/kernel/time_ticks.c ****     _INT_ENABLE();
+ 480              		.loc 1 314 0 discriminator 2
+ 481 0036 E369     		ldr	r3, [r4, #28]
+ 482 0038 9B6C     		ldr	r3, [r3, #72]
+ 483 003a 002B     		cmp	r3, #0
+ 484 003c 0CD0     		beq	.L32
+ 485              		.loc 1 314 0 is_stmt 0 discriminator 1
+ 486 003e E369     		ldr	r3, [r4, #28]
+ 487 0040 9A6C     		ldr	r2, [r3, #72]
+ 488 0042 013A     		sub	r2, r2, #1
+ 489 0044 9A64     		str	r2, [r3, #72]
+ 490 0046 9B6C     		ldr	r3, [r3, #72]
+ 491 0048 002B     		cmp	r3, #0
+ 492 004a 05D1     		bne	.L32
+ 493              		.loc 1 314 0 discriminator 2
+ 494 004c 238B     		ldrh	r3, [r4, #24]
+ 495 004e 002B     		cmp	r3, #0
+ 496 0050 01D0     		beq	.L36
+ 497              		.loc 1 314 0 discriminator 3
+ 498              	@ 314 "../MQXLITE/kernel/time_ticks.c" 1
+ 499 0052 62B6     		cpsie i
+ 500              	@ 0 "" 2
+ 501              		.code	16
+ 502 0054 00E0     		b	.L32
+ 503              	.L36:
+ 504              		.loc 1 314 0 discriminator 4
+ 505              	@ 314 "../MQXLITE/kernel/time_ticks.c" 1
+ 506 0056 62B6     		cpsie i
+ 507              	@ 0 "" 2
+ 508              		.code	16
+ 509              	.L32:
+ 315:../MQXLITE/kernel/time_ticks.c **** 
+ 316:../MQXLITE/kernel/time_ticks.c ****     _KLOGX1(KLOG_time_delay_until);
+ 317:../MQXLITE/kernel/time_ticks.c **** 
+ 318:../MQXLITE/kernel/time_ticks.c **** } /* Endbody */
+ 510              		.loc 1 318 0 is_stmt 1
+ 511 0058 BD46     		mov	sp, r7
+ 512              		@ sp needed for prologue
+ 513 005a F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 514              	.L38:
+ 515              		.align	2
+ 516              	.L37:
+ 517 005c 00000000 		.word	_mqx_kernel_data
+ 518              		.cfi_endproc
+ 519              	.LFE3:
+ 521              		.section	.text._time_diff_ticks,"ax",%progbits
+ 522              		.align	2
+ 523              		.global	_time_diff_ticks
+ 524              		.code	16
+ 525              		.thumb_func
+ 527              	_time_diff_ticks:
+ 528              	.LFB4:
+ 319:../MQXLITE/kernel/time_ticks.c **** 
+ 320:../MQXLITE/kernel/time_ticks.c **** #endif /* MQX_HAS_TICK */
+ 321:../MQXLITE/kernel/time_ticks.c **** 
+ 322:../MQXLITE/kernel/time_ticks.c **** /*!
+ 323:../MQXLITE/kernel/time_ticks.c ****  * \brief Get the difference between two tick times.
+ 324:../MQXLITE/kernel/time_ticks.c ****  *
+ 325:../MQXLITE/kernel/time_ticks.c ****  * \param[in]  end_tick_ptr   Pointer to the normalized end time, which must be
+ 326:../MQXLITE/kernel/time_ticks.c ****  * greater than the start time.
+ 327:../MQXLITE/kernel/time_ticks.c ****  * \param[in]  start_tick_ptr Pointer to the normalized start time in tick time.
+ 328:../MQXLITE/kernel/time_ticks.c ****  * \param[out] diff_tick_ptr  Pointer to the time difference (the time is normalized).
+ 329:../MQXLITE/kernel/time_ticks.c ****  *
+ 330:../MQXLITE/kernel/time_ticks.c ****  * \return MQX_OK
+ 331:../MQXLITE/kernel/time_ticks.c ****  * \return MQX_INVALID_PARAMETER (One or more pointers are NULL.)
+ 332:../MQXLITE/kernel/time_ticks.c ****  *
+ 333:../MQXLITE/kernel/time_ticks.c ****  * \see _time_diff
+ 334:../MQXLITE/kernel/time_ticks.c ****  * \see _time_diff_days
+ 335:../MQXLITE/kernel/time_ticks.c ****  * \see _time_diff_hours
+ 336:../MQXLITE/kernel/time_ticks.c ****  * \see _time_diff_minutes
+ 337:../MQXLITE/kernel/time_ticks.c ****  * \see _time_diff_seconds
+ 338:../MQXLITE/kernel/time_ticks.c ****  * \see _time_diff_milliseconds
+ 339:../MQXLITE/kernel/time_ticks.c ****  * \see _time_diff_microseconds
+ 340:../MQXLITE/kernel/time_ticks.c ****  * \see _time_diff_nanoseconds
+ 341:../MQXLITE/kernel/time_ticks.c ****  * \see _time_diff_picoseconds
+ 342:../MQXLITE/kernel/time_ticks.c ****  * \see _time_get
+ 343:../MQXLITE/kernel/time_ticks.c ****  * \see _time_get_ticks
+ 344:../MQXLITE/kernel/time_ticks.c ****  * \see _time_set
+ 345:../MQXLITE/kernel/time_ticks.c ****  * \see _time_set_ticks
+ 346:../MQXLITE/kernel/time_ticks.c ****  * \see MQX_TICK_STRUCT
+ 347:../MQXLITE/kernel/time_ticks.c ****  */
+ 348:../MQXLITE/kernel/time_ticks.c **** _mqx_uint _time_diff_ticks
+ 349:../MQXLITE/kernel/time_ticks.c **** (
+ 350:../MQXLITE/kernel/time_ticks.c ****     MQX_TICK_STRUCT_PTR end_tick_ptr,
+ 351:../MQXLITE/kernel/time_ticks.c ****     MQX_TICK_STRUCT_PTR start_tick_ptr,
+ 352:../MQXLITE/kernel/time_ticks.c ****     MQX_TICK_STRUCT_PTR diff_tick_ptr
+ 353:../MQXLITE/kernel/time_ticks.c **** )
+ 354:../MQXLITE/kernel/time_ticks.c **** { /* Body */
+ 529              		.loc 1 354 0
+ 530              		.cfi_startproc
+ 531 0000 80B5     		push	{r7, lr}
+ 532              	.LCFI10:
+ 533              		.cfi_def_cfa_offset 8
+ 534              		.cfi_offset 7, -8
+ 535              		.cfi_offset 14, -4
+ 536 0002 84B0     		sub	sp, sp, #16
+ 537              	.LCFI11:
+ 538              		.cfi_def_cfa_offset 24
+ 539 0004 00AF     		add	r7, sp, #0
+ 540              	.LCFI12:
+ 541              		.cfi_def_cfa_register 7
+ 542 0006 F860     		str	r0, [r7, #12]
+ 543 0008 B960     		str	r1, [r7, #8]
+ 544 000a 7A60     		str	r2, [r7, #4]
+ 355:../MQXLITE/kernel/time_ticks.c **** 
+ 356:../MQXLITE/kernel/time_ticks.c **** #if MQX_CHECK_ERRORS
+ 357:../MQXLITE/kernel/time_ticks.c ****     if ((end_tick_ptr == NULL) || (start_tick_ptr == NULL) ||
+ 545              		.loc 1 357 0
+ 546 000c FB68     		ldr	r3, [r7, #12]
+ 547 000e 002B     		cmp	r3, #0
+ 548 0010 05D0     		beq	.L40
+ 549              		.loc 1 357 0 is_stmt 0 discriminator 1
+ 550 0012 BB68     		ldr	r3, [r7, #8]
+ 551 0014 002B     		cmp	r3, #0
+ 552 0016 02D0     		beq	.L40
+ 553 0018 7B68     		ldr	r3, [r7, #4]
+ 554 001a 002B     		cmp	r3, #0
+ 555 001c 01D1     		bne	.L41
+ 556              	.L40:
+ 358:../MQXLITE/kernel/time_ticks.c ****                     (diff_tick_ptr == NULL))
+ 359:../MQXLITE/kernel/time_ticks.c ****     {
+ 360:../MQXLITE/kernel/time_ticks.c ****         return MQX_INVALID_PARAMETER;
+ 557              		.loc 1 360 0 is_stmt 1
+ 558 001e 0C23     		mov	r3, #12
+ 559 0020 08E0     		b	.L42
+ 560              	.L41:
+ 361:../MQXLITE/kernel/time_ticks.c ****     } /* Endif */
+ 362:../MQXLITE/kernel/time_ticks.c **** #endif
+ 363:../MQXLITE/kernel/time_ticks.c **** 
+ 364:../MQXLITE/kernel/time_ticks.c ****     PSP_SUB_TICKS(end_tick_ptr, start_tick_ptr, diff_tick_ptr);
+ 561              		.loc 1 364 0
+ 562 0022 F968     		ldr	r1, [r7, #12]
+ 563 0024 BA68     		ldr	r2, [r7, #8]
+ 564 0026 7B68     		ldr	r3, [r7, #4]
+ 565 0028 081C     		mov	r0, r1
+ 566 002a 111C     		mov	r1, r2
+ 567 002c 1A1C     		mov	r2, r3
+ 568 002e FFF7FEFF 		bl	_psp_subtract_ticks
+ 365:../MQXLITE/kernel/time_ticks.c **** 
+ 366:../MQXLITE/kernel/time_ticks.c ****     return MQX_OK;
+ 569              		.loc 1 366 0
+ 570 0032 0023     		mov	r3, #0
+ 571              	.L42:
+ 367:../MQXLITE/kernel/time_ticks.c **** 
+ 368:../MQXLITE/kernel/time_ticks.c **** } /* Endbody */
+ 572              		.loc 1 368 0
+ 573 0034 181C     		mov	r0, r3
+ 574 0036 BD46     		mov	sp, r7
+ 575 0038 04B0     		add	sp, sp, #16
+ 576              		@ sp needed for prologue
+ 577 003a 80BD     		pop	{r7, pc}
+ 578              		.cfi_endproc
+ 579              	.LFE4:
+ 581              		.section	.text._time_diff_ticks_int32,"ax",%progbits
+ 582              		.align	2
+ 583              		.global	_time_diff_ticks_int32
+ 584              		.code	16
+ 585              		.thumb_func
+ 587              	_time_diff_ticks_int32:
+ 588              	.LFB5:
+ 369:../MQXLITE/kernel/time_ticks.c **** 
+ 370:../MQXLITE/kernel/time_ticks.c **** /*!
+ 371:../MQXLITE/kernel/time_ticks.c ****  * \brief Get the difference between two tick times and clamps result into int_32 interval.
+ 372:../MQXLITE/kernel/time_ticks.c ****  *
+ 373:../MQXLITE/kernel/time_ticks.c ****  * \param[in]  end_tick_ptr   Pointer to the normalized end time (in ticks), which must be
+ 374:../MQXLITE/kernel/time_ticks.c ****  * greater than the start time.
+ 375:../MQXLITE/kernel/time_ticks.c ****  * \param[in]  start_tick_ptr Pointer to the normalized start time (in ticks).
+ 376:../MQXLITE/kernel/time_ticks.c ****  * \param[out] overflow_ptr   Set to TRUE if overflow occurs.
+ 377:../MQXLITE/kernel/time_ticks.c ****  *
+ 378:../MQXLITE/kernel/time_ticks.c ****  * \return Difference between the times as int_32 (<-(MAX_INT_32 + 1), MAX_INT_32>).
+ 379:../MQXLITE/kernel/time_ticks.c ****  *
+ 380:../MQXLITE/kernel/time_ticks.c ****  * \see _time_diff_ticks
+ 381:../MQXLITE/kernel/time_ticks.c ****  * \see _time_diff
+ 382:../MQXLITE/kernel/time_ticks.c ****  * \see _time_diff_days
+ 383:../MQXLITE/kernel/time_ticks.c ****  * \see _time_diff_hours
+ 384:../MQXLITE/kernel/time_ticks.c ****  * \see _time_diff_minutes
+ 385:../MQXLITE/kernel/time_ticks.c ****  * \see _time_diff_seconds
+ 386:../MQXLITE/kernel/time_ticks.c ****  * \see _time_diff_milliseconds
+ 387:../MQXLITE/kernel/time_ticks.c ****  * \see _time_diff_microseconds
+ 388:../MQXLITE/kernel/time_ticks.c ****  * \see _time_diff_nanoseconds
+ 389:../MQXLITE/kernel/time_ticks.c ****  * \see _time_diff_picoseconds
+ 390:../MQXLITE/kernel/time_ticks.c ****  * \see _time_get
+ 391:../MQXLITE/kernel/time_ticks.c ****  * \see _time_get_ticks
+ 392:../MQXLITE/kernel/time_ticks.c ****  * \see _time_set
+ 393:../MQXLITE/kernel/time_ticks.c ****  * \see _time_set_ticks
+ 394:../MQXLITE/kernel/time_ticks.c ****  * \see MQX_TICK_STRUCT
+ 395:../MQXLITE/kernel/time_ticks.c ****  */
+ 396:../MQXLITE/kernel/time_ticks.c **** int_32 _time_diff_ticks_int32
+ 397:../MQXLITE/kernel/time_ticks.c **** (
+ 398:../MQXLITE/kernel/time_ticks.c ****     MQX_TICK_STRUCT_PTR end_tick_ptr,
+ 399:../MQXLITE/kernel/time_ticks.c ****     MQX_TICK_STRUCT_PTR start_tick_ptr,
+ 400:../MQXLITE/kernel/time_ticks.c ****     boolean _PTR_ overflow_ptr
+ 401:../MQXLITE/kernel/time_ticks.c **** )
+ 402:../MQXLITE/kernel/time_ticks.c **** { /* Body */
+ 589              		.loc 1 402 0
+ 590              		.cfi_startproc
+ 591 0000 80B5     		push	{r7, lr}
+ 592              	.LCFI13:
+ 593              		.cfi_def_cfa_offset 8
+ 594              		.cfi_offset 7, -8
+ 595              		.cfi_offset 14, -4
+ 596 0002 84B0     		sub	sp, sp, #16
+ 597              	.LCFI14:
+ 598              		.cfi_def_cfa_offset 24
+ 599 0004 00AF     		add	r7, sp, #0
+ 600              	.LCFI15:
+ 601              		.cfi_def_cfa_register 7
+ 602 0006 F860     		str	r0, [r7, #12]
+ 603 0008 B960     		str	r1, [r7, #8]
+ 604 000a 7A60     		str	r2, [r7, #4]
+ 403:../MQXLITE/kernel/time_ticks.c **** 
+ 404:../MQXLITE/kernel/time_ticks.c **** #if MQX_CHECK_ERRORS
+ 405:../MQXLITE/kernel/time_ticks.c ****     if ((end_tick_ptr == NULL) || (start_tick_ptr == NULL))
+ 605              		.loc 1 405 0
+ 606 000c FB68     		ldr	r3, [r7, #12]
+ 607 000e 002B     		cmp	r3, #0
+ 608 0010 02D0     		beq	.L44
+ 609              		.loc 1 405 0 is_stmt 0 discriminator 1
+ 610 0012 BB68     		ldr	r3, [r7, #8]
+ 611 0014 002B     		cmp	r3, #0
+ 612 0016 07D1     		bne	.L45
+ 613              	.L44:
+ 406:../MQXLITE/kernel/time_ticks.c ****     {
+ 407:../MQXLITE/kernel/time_ticks.c ****         if (overflow_ptr != NULL) *overflow_ptr = TRUE;
+ 614              		.loc 1 407 0 is_stmt 1
+ 615 0018 7B68     		ldr	r3, [r7, #4]
+ 616 001a 002B     		cmp	r3, #0
+ 617 001c 02D0     		beq	.L46
+ 618              		.loc 1 407 0 is_stmt 0 discriminator 1
+ 619 001e 7B68     		ldr	r3, [r7, #4]
+ 620 0020 0122     		mov	r2, #1
+ 621 0022 1A60     		str	r2, [r3]
+ 622              	.L46:
+ 408:../MQXLITE/kernel/time_ticks.c ****         return MAX_INT_32;
+ 623              		.loc 1 408 0 is_stmt 1
+ 624 0024 074B     		ldr	r3, .L48
+ 625 0026 08E0     		b	.L47
+ 626              	.L45:
+ 409:../MQXLITE/kernel/time_ticks.c ****     } /* Endif */
+ 410:../MQXLITE/kernel/time_ticks.c **** #endif
+ 411:../MQXLITE/kernel/time_ticks.c **** 
+ 412:../MQXLITE/kernel/time_ticks.c ****     return (PSP_SUB_TICKS_INT32(end_tick_ptr, start_tick_ptr, overflow_ptr));
+ 627              		.loc 1 412 0
+ 628 0028 F968     		ldr	r1, [r7, #12]
+ 629 002a BA68     		ldr	r2, [r7, #8]
+ 630 002c 7B68     		ldr	r3, [r7, #4]
+ 631 002e 081C     		mov	r0, r1
+ 632 0030 111C     		mov	r1, r2
+ 633 0032 1A1C     		mov	r2, r3
+ 634 0034 FFF7FEFF 		bl	_psp_subtract_ticks_int32
+ 635 0038 031C     		mov	r3, r0
+ 636              	.L47:
+ 413:../MQXLITE/kernel/time_ticks.c **** } /* Endbody */
+ 637              		.loc 1 413 0
+ 638 003a 181C     		mov	r0, r3
+ 639 003c BD46     		mov	sp, r7
+ 640 003e 04B0     		add	sp, sp, #16
+ 641              		@ sp needed for prologue
+ 642 0040 80BD     		pop	{r7, pc}
+ 643              	.L49:
+ 644 0042 C046     		.align	2
+ 645              	.L48:
+ 646 0044 FFFFFF7F 		.word	2147483647
+ 647              		.cfi_endproc
+ 648              	.LFE5:
+ 650              		.section	.text._time_dequeue,"ax",%progbits
+ 651              		.align	2
+ 652              		.global	_time_dequeue
+ 653              		.code	16
+ 654              		.thumb_func
+ 656              	_time_dequeue:
+ 657              	.LFB6:
+ 414:../MQXLITE/kernel/time_ticks.c **** 
+ 415:../MQXLITE/kernel/time_ticks.c **** /*!
+ 416:../MQXLITE/kernel/time_ticks.c ****  * \brief Removes the task (specified by task ID) from the timeout queue.
+ 417:../MQXLITE/kernel/time_ticks.c ****  *
+ 418:../MQXLITE/kernel/time_ticks.c ****  * The function removes from the timeout queue a task that has put itself there
+ 419:../MQXLITE/kernel/time_ticks.c ****  * for a period of time (_time_delay()).
+ 420:../MQXLITE/kernel/time_ticks.c ****  * \n If tid is invalid or represents a task that is on another processor, the
+ 421:../MQXLITE/kernel/time_ticks.c ****  * function does nothing.
+ 422:../MQXLITE/kernel/time_ticks.c ****  * \n A task that calls the function must subsequently put the task in the task's
+ 423:../MQXLITE/kernel/time_ticks.c ****  * ready queue with _task_ready().
+ 424:../MQXLITE/kernel/time_ticks.c ****  *
+ 425:../MQXLITE/kernel/time_ticks.c ****  * \param[in] tid Task ID of the task to be removed from the timeout queue.
+ 426:../MQXLITE/kernel/time_ticks.c ****  *
+ 427:../MQXLITE/kernel/time_ticks.c ****  * \warning Removes the task from the timeout queue, but does not put it in the
+ 428:../MQXLITE/kernel/time_ticks.c ****  * task's ready queue.
+ 429:../MQXLITE/kernel/time_ticks.c ****  *
+ 430:../MQXLITE/kernel/time_ticks.c ****  * \see _task_ready
+ 431:../MQXLITE/kernel/time_ticks.c ****  * \see _time_delay
+ 432:../MQXLITE/kernel/time_ticks.c ****  * \see _time_delay_for
+ 433:../MQXLITE/kernel/time_ticks.c ****  * \see _time_delay_ticks
+ 434:../MQXLITE/kernel/time_ticks.c ****  * \see _time_delay_until
+ 435:../MQXLITE/kernel/time_ticks.c ****  * \see _time_dequeue_td
+ 436:../MQXLITE/kernel/time_ticks.c ****  */
+ 437:../MQXLITE/kernel/time_ticks.c **** void _time_dequeue
+ 438:../MQXLITE/kernel/time_ticks.c **** (
+ 439:../MQXLITE/kernel/time_ticks.c ****     _task_id tid
+ 440:../MQXLITE/kernel/time_ticks.c **** )
+ 441:../MQXLITE/kernel/time_ticks.c **** { /* Body */
+ 658              		.loc 1 441 0
+ 659              		.cfi_startproc
+ 660 0000 80B5     		push	{r7, lr}
+ 661              	.LCFI16:
+ 662              		.cfi_def_cfa_offset 8
+ 663              		.cfi_offset 7, -8
+ 664              		.cfi_offset 14, -4
+ 665 0002 86B0     		sub	sp, sp, #24
+ 666              	.LCFI17:
+ 667              		.cfi_def_cfa_offset 32
+ 668 0004 00AF     		add	r7, sp, #0
+ 669              	.LCFI18:
+ 670              		.cfi_def_cfa_register 7
+ 671 0006 7860     		str	r0, [r7, #4]
+ 442:../MQXLITE/kernel/time_ticks.c ****     KERNEL_DATA_STRUCT_PTR kernel_data;
+ 443:../MQXLITE/kernel/time_ticks.c ****     TD_STRUCT_PTR td_ptr;
+ 444:../MQXLITE/kernel/time_ticks.c **** 
+ 445:../MQXLITE/kernel/time_ticks.c ****     _GET_KERNEL_DATA(kernel_data);
+ 672              		.loc 1 445 0
+ 673 0008 1C4B     		ldr	r3, .L55
+ 674 000a 1B68     		ldr	r3, [r3]
+ 675 000c 7B61     		str	r3, [r7, #20]
+ 446:../MQXLITE/kernel/time_ticks.c **** 
+ 447:../MQXLITE/kernel/time_ticks.c ****     _KLOGE2(KLOG_time_dequeue, tid);
+ 448:../MQXLITE/kernel/time_ticks.c **** 
+ 449:../MQXLITE/kernel/time_ticks.c ****     td_ptr = (TD_STRUCT_PTR) _task_get_td(tid);
+ 676              		.loc 1 449 0
+ 677 000e 7B68     		ldr	r3, [r7, #4]
+ 678 0010 181C     		mov	r0, r3
+ 679 0012 FFF7FEFF 		bl	_task_get_td
+ 680 0016 031C     		mov	r3, r0
+ 681 0018 3B61     		str	r3, [r7, #16]
+ 450:../MQXLITE/kernel/time_ticks.c ****     if (td_ptr == NULL) {
+ 682              		.loc 1 450 0
+ 683 001a 3B69     		ldr	r3, [r7, #16]
+ 684 001c 002B     		cmp	r3, #0
+ 685 001e 29D0     		beq	.L54
+ 686              	.L51:
+ 451:../MQXLITE/kernel/time_ticks.c ****         _KLOGX1( KLOG_time_dequeue);
+ 452:../MQXLITE/kernel/time_ticks.c ****         return;
+ 453:../MQXLITE/kernel/time_ticks.c ****     }/* Endif */
+ 454:../MQXLITE/kernel/time_ticks.c **** 
+ 455:../MQXLITE/kernel/time_ticks.c ****     _int_disable();
+ 687              		.loc 1 455 0
+ 688 0020 FFF7FEFF 		bl	_int_disable
+ 456:../MQXLITE/kernel/time_ticks.c ****     _TIME_DEQUEUE(td_ptr, kernel_data);
+ 689              		.loc 1 456 0
+ 690 0024 3B69     		ldr	r3, [r7, #16]
+ 691 0026 9A68     		ldr	r2, [r3, #8]
+ 692 0028 8023     		mov	r3, #128
+ 693 002a 5B00     		lsl	r3, r3, #1
+ 694 002c 1340     		and	r3, r2
+ 695 002e 1ED0     		beq	.L53
+ 696              	.LBB4:
+ 697              		.loc 1 456 0 is_stmt 0 discriminator 1
+ 698 0030 3B69     		ldr	r3, [r7, #16]
+ 699 0032 5B68     		ldr	r3, [r3, #4]
+ 700 0034 FB60     		str	r3, [r7, #12]
+ 701 0036 3B69     		ldr	r3, [r7, #16]
+ 702 0038 1B68     		ldr	r3, [r3]
+ 703 003a BB60     		str	r3, [r7, #8]
+ 704 003c FB68     		ldr	r3, [r7, #12]
+ 705 003e BA68     		ldr	r2, [r7, #8]
+ 706 0040 1A60     		str	r2, [r3]
+ 707 0042 BB68     		ldr	r3, [r7, #8]
+ 708 0044 FA68     		ldr	r2, [r7, #12]
+ 709 0046 5A60     		str	r2, [r3, #4]
+ 710              	.LBE4:
+ 711 0048 7B69     		ldr	r3, [r7, #20]
+ 712 004a 2933     		add	r3, r3, #41
+ 713 004c FF33     		add	r3, r3, #255
+ 714 004e 1A89     		ldrh	r2, [r3, #8]
+ 715 0050 013A     		sub	r2, r2, #1
+ 716 0052 92B2     		uxth	r2, r2
+ 717 0054 1A81     		strh	r2, [r3, #8]
+ 718 0056 3B69     		ldr	r3, [r7, #16]
+ 719 0058 9A68     		ldr	r2, [r3, #8]
+ 720 005a 094B     		ldr	r3, .L55+4
+ 721 005c 1A40     		and	r2, r3
+ 722 005e 3B69     		ldr	r3, [r7, #16]
+ 723 0060 9A60     		str	r2, [r3, #8]
+ 724 0062 3B69     		ldr	r3, [r7, #16]
+ 725 0064 9B68     		ldr	r3, [r3, #8]
+ 726 0066 0322     		mov	r2, #3
+ 727 0068 1A43     		orr	r2, r3
+ 728 006a 3B69     		ldr	r3, [r7, #16]
+ 729 006c 9A60     		str	r2, [r3, #8]
+ 730              	.L53:
+ 457:../MQXLITE/kernel/time_ticks.c ****     _int_enable();
+ 731              		.loc 1 457 0 is_stmt 1
+ 732 006e FFF7FEFF 		bl	_int_enable
+ 733 0072 00E0     		b	.L50
+ 734              	.L54:
+ 452:../MQXLITE/kernel/time_ticks.c ****         return;
+ 735              		.loc 1 452 0
+ 736 0074 C046     		mov	r8, r8
+ 737              	.L50:
+ 458:../MQXLITE/kernel/time_ticks.c **** 
+ 459:../MQXLITE/kernel/time_ticks.c ****     _KLOGX1( KLOG_time_dequeue);
+ 460:../MQXLITE/kernel/time_ticks.c **** 
+ 461:../MQXLITE/kernel/time_ticks.c **** } /* Endbody */
+ 738              		.loc 1 461 0
+ 739 0076 BD46     		mov	sp, r7
+ 740 0078 06B0     		add	sp, sp, #24
+ 741              		@ sp needed for prologue
+ 742 007a 80BD     		pop	{r7, pc}
+ 743              	.L56:
+ 744              		.align	2
+ 745              	.L55:
+ 746 007c 00000000 		.word	_mqx_kernel_data
+ 747 0080 FFFEFFFF 		.word	-257
+ 748              		.cfi_endproc
+ 749              	.LFE6:
+ 751              		.section	.text._time_dequeue_td,"ax",%progbits
+ 752              		.align	2
+ 753              		.global	_time_dequeue_td
+ 754              		.code	16
+ 755              		.thumb_func
+ 757              	_time_dequeue_td:
+ 758              	.LFB7:
+ 462:../MQXLITE/kernel/time_ticks.c **** 
+ 463:../MQXLITE/kernel/time_ticks.c **** /*!
+ 464:../MQXLITE/kernel/time_ticks.c ****  * \brief Removes the task (specified by task descriptor) from the timeout queue.
+ 465:../MQXLITE/kernel/time_ticks.c ****  *
+ 466:../MQXLITE/kernel/time_ticks.c ****  * \param[in] td Pointer to the task descriptor of the task to be removed from
+ 467:../MQXLITE/kernel/time_ticks.c ****  * the timeout queue.
+ 468:../MQXLITE/kernel/time_ticks.c ****  *
+ 469:../MQXLITE/kernel/time_ticks.c ****  * \warning Removes the task from the timeout queue; does not put it in the task's
+ 470:../MQXLITE/kernel/time_ticks.c ****  * ready queue.
+ 471:../MQXLITE/kernel/time_ticks.c ****  *
+ 472:../MQXLITE/kernel/time_ticks.c ****  * \see _task_ready
+ 473:../MQXLITE/kernel/time_ticks.c ****  * \see _time_delay
+ 474:../MQXLITE/kernel/time_ticks.c ****  * \see _time_delay_for
+ 475:../MQXLITE/kernel/time_ticks.c ****  * \see _time_delay_ticks
+ 476:../MQXLITE/kernel/time_ticks.c ****  * \see _time_delay_until
+ 477:../MQXLITE/kernel/time_ticks.c ****  * \see _time_dequeue
+ 478:../MQXLITE/kernel/time_ticks.c ****  */
+ 479:../MQXLITE/kernel/time_ticks.c **** void _time_dequeue_td
+ 480:../MQXLITE/kernel/time_ticks.c **** (
+ 481:../MQXLITE/kernel/time_ticks.c ****     pointer td
+ 482:../MQXLITE/kernel/time_ticks.c **** )
+ 483:../MQXLITE/kernel/time_ticks.c **** { /* Body */
+ 759              		.loc 1 483 0
+ 760              		.cfi_startproc
+ 761 0000 80B5     		push	{r7, lr}
+ 762              	.LCFI19:
+ 763              		.cfi_def_cfa_offset 8
+ 764              		.cfi_offset 7, -8
+ 765              		.cfi_offset 14, -4
+ 766 0002 86B0     		sub	sp, sp, #24
+ 767              	.LCFI20:
+ 768              		.cfi_def_cfa_offset 32
+ 769 0004 00AF     		add	r7, sp, #0
+ 770              	.LCFI21:
+ 771              		.cfi_def_cfa_register 7
+ 772 0006 7860     		str	r0, [r7, #4]
+ 484:../MQXLITE/kernel/time_ticks.c ****     KERNEL_DATA_STRUCT_PTR kernel_data;
+ 485:../MQXLITE/kernel/time_ticks.c ****     TD_STRUCT_PTR td_ptr = (TD_STRUCT_PTR) td;
+ 773              		.loc 1 485 0
+ 774 0008 7B68     		ldr	r3, [r7, #4]
+ 775 000a 7B61     		str	r3, [r7, #20]
+ 486:../MQXLITE/kernel/time_ticks.c **** 
+ 487:../MQXLITE/kernel/time_ticks.c ****     _GET_KERNEL_DATA(kernel_data);
+ 776              		.loc 1 487 0
+ 777 000c 174B     		ldr	r3, .L59
+ 778 000e 1B68     		ldr	r3, [r3]
+ 779 0010 3B61     		str	r3, [r7, #16]
+ 488:../MQXLITE/kernel/time_ticks.c **** 
+ 489:../MQXLITE/kernel/time_ticks.c ****     _KLOGE2(KLOG_time_dequeue_td, td);
+ 490:../MQXLITE/kernel/time_ticks.c **** 
+ 491:../MQXLITE/kernel/time_ticks.c ****     _int_disable();
+ 780              		.loc 1 491 0
+ 781 0012 FFF7FEFF 		bl	_int_disable
+ 492:../MQXLITE/kernel/time_ticks.c ****     _TIME_DEQUEUE(td_ptr, kernel_data);
+ 782              		.loc 1 492 0
+ 783 0016 7B69     		ldr	r3, [r7, #20]
+ 784 0018 9A68     		ldr	r2, [r3, #8]
+ 785 001a 8023     		mov	r3, #128
+ 786 001c 5B00     		lsl	r3, r3, #1
+ 787 001e 1340     		and	r3, r2
+ 788 0020 1ED0     		beq	.L58
+ 789              	.LBB5:
+ 790              		.loc 1 492 0 is_stmt 0 discriminator 1
+ 791 0022 7B69     		ldr	r3, [r7, #20]
+ 792 0024 5B68     		ldr	r3, [r3, #4]
+ 793 0026 FB60     		str	r3, [r7, #12]
+ 794 0028 7B69     		ldr	r3, [r7, #20]
+ 795 002a 1B68     		ldr	r3, [r3]
+ 796 002c BB60     		str	r3, [r7, #8]
+ 797 002e FB68     		ldr	r3, [r7, #12]
+ 798 0030 BA68     		ldr	r2, [r7, #8]
+ 799 0032 1A60     		str	r2, [r3]
+ 800 0034 BB68     		ldr	r3, [r7, #8]
+ 801 0036 FA68     		ldr	r2, [r7, #12]
+ 802 0038 5A60     		str	r2, [r3, #4]
+ 803              	.LBE5:
+ 804 003a 3B69     		ldr	r3, [r7, #16]
+ 805 003c 2933     		add	r3, r3, #41
+ 806 003e FF33     		add	r3, r3, #255
+ 807 0040 1A89     		ldrh	r2, [r3, #8]
+ 808 0042 013A     		sub	r2, r2, #1
+ 809 0044 92B2     		uxth	r2, r2
+ 810 0046 1A81     		strh	r2, [r3, #8]
+ 811 0048 7B69     		ldr	r3, [r7, #20]
+ 812 004a 9A68     		ldr	r2, [r3, #8]
+ 813 004c 084B     		ldr	r3, .L59+4
+ 814 004e 1A40     		and	r2, r3
+ 815 0050 7B69     		ldr	r3, [r7, #20]
+ 816 0052 9A60     		str	r2, [r3, #8]
+ 817 0054 7B69     		ldr	r3, [r7, #20]
+ 818 0056 9B68     		ldr	r3, [r3, #8]
+ 819 0058 0322     		mov	r2, #3
+ 820 005a 1A43     		orr	r2, r3
+ 821 005c 7B69     		ldr	r3, [r7, #20]
+ 822 005e 9A60     		str	r2, [r3, #8]
+ 823              	.L58:
+ 493:../MQXLITE/kernel/time_ticks.c ****     _int_enable();
+ 824              		.loc 1 493 0 is_stmt 1
+ 825 0060 FFF7FEFF 		bl	_int_enable
+ 494:../MQXLITE/kernel/time_ticks.c **** 
+ 495:../MQXLITE/kernel/time_ticks.c ****     _KLOGX1( KLOG_time_dequeue_td);
+ 496:../MQXLITE/kernel/time_ticks.c **** 
+ 497:../MQXLITE/kernel/time_ticks.c **** } /* Endbody */
+ 826              		.loc 1 497 0
+ 827 0064 BD46     		mov	sp, r7
+ 828 0066 06B0     		add	sp, sp, #24
+ 829              		@ sp needed for prologue
+ 830 0068 80BD     		pop	{r7, pc}
+ 831              	.L60:
+ 832 006a C046     		.align	2
+ 833              	.L59:
+ 834 006c 00000000 		.word	_mqx_kernel_data
+ 835 0070 FFFEFFFF 		.word	-257
+ 836              		.cfi_endproc
+ 837              	.LFE7:
+ 839              		.section	.text._time_get_elapsed_ticks,"ax",%progbits
+ 840              		.align	2
+ 841              		.global	_time_get_elapsed_ticks
+ 842              		.code	16
+ 843              		.thumb_func
+ 845              	_time_get_elapsed_ticks:
+ 846              	.LFB8:
+ 498:../MQXLITE/kernel/time_ticks.c **** 
+ 499:../MQXLITE/kernel/time_ticks.c **** /*!
+ 500:../MQXLITE/kernel/time_ticks.c ****  * \brief Get the time elapsed since MQX started in tick time.
+ 501:../MQXLITE/kernel/time_ticks.c ****  *
+ 502:../MQXLITE/kernel/time_ticks.c ****  * The function always returns elapsed time; it is not affected by _time_set() or
+ 503:../MQXLITE/kernel/time_ticks.c ****  * _time_set_ticks().
+ 504:../MQXLITE/kernel/time_ticks.c ****  *
+ 505:../MQXLITE/kernel/time_ticks.c ****  * \param[in,out] tick_ptr Where to store the elapsed tick time.
+ 506:../MQXLITE/kernel/time_ticks.c ****  *
+ 507:../MQXLITE/kernel/time_ticks.c ****  * \see _time_get_elapsed
+ 508:../MQXLITE/kernel/time_ticks.c ****  * \see _time_get
+ 509:../MQXLITE/kernel/time_ticks.c ****  * \see _time_get_ticks
+ 510:../MQXLITE/kernel/time_ticks.c ****  * \see _time_set
+ 511:../MQXLITE/kernel/time_ticks.c ****  * \see _time_set_ticks
+ 512:../MQXLITE/kernel/time_ticks.c ****  * \see _time_get_elapsed_ticks_fast
+ 513:../MQXLITE/kernel/time_ticks.c ****  * \see MQX_TICK_STRUCT
+ 514:../MQXLITE/kernel/time_ticks.c ****  */
+ 515:../MQXLITE/kernel/time_ticks.c **** void _time_get_elapsed_ticks
+ 516:../MQXLITE/kernel/time_ticks.c **** (
+ 517:../MQXLITE/kernel/time_ticks.c ****     MQX_TICK_STRUCT_PTR tick_ptr
+ 518:../MQXLITE/kernel/time_ticks.c **** )
+ 519:../MQXLITE/kernel/time_ticks.c **** {
+ 847              		.loc 1 519 0
+ 848              		.cfi_startproc
+ 849 0000 90B5     		push	{r4, r7, lr}
+ 850              	.LCFI22:
+ 851              		.cfi_def_cfa_offset 12
+ 852              		.cfi_offset 4, -12
+ 853              		.cfi_offset 7, -8
+ 854              		.cfi_offset 14, -4
+ 855 0002 85B0     		sub	sp, sp, #20
+ 856              	.LCFI23:
+ 857              		.cfi_def_cfa_offset 32
+ 858 0004 00AF     		add	r7, sp, #0
+ 859              	.LCFI24:
+ 860              		.cfi_def_cfa_register 7
+ 861 0006 7860     		str	r0, [r7, #4]
+ 520:../MQXLITE/kernel/time_ticks.c ****     KERNEL_DATA_STRUCT_PTR kernel_data;
+ 521:../MQXLITE/kernel/time_ticks.c **** 
+ 522:../MQXLITE/kernel/time_ticks.c **** #if MQX_CHECK_ERRORS
+ 523:../MQXLITE/kernel/time_ticks.c ****     if ( tick_ptr == NULL ) {
+ 862              		.loc 1 523 0
+ 863 0008 7B68     		ldr	r3, [r7, #4]
+ 864 000a 002B     		cmp	r3, #0
+ 865 000c 40D0     		beq	.L68
+ 866              	.L62:
+ 524:../MQXLITE/kernel/time_ticks.c ****         return;
+ 525:../MQXLITE/kernel/time_ticks.c ****     }
+ 526:../MQXLITE/kernel/time_ticks.c **** #endif
+ 527:../MQXLITE/kernel/time_ticks.c **** 
+ 528:../MQXLITE/kernel/time_ticks.c **** #if MQX_ENABLE_USER_MODE && MQX_ENABLE_USER_STDAPI
+ 529:../MQXLITE/kernel/time_ticks.c ****     if (MQX_RUN_IN_USER_MODE) {
+ 530:../MQXLITE/kernel/time_ticks.c ****         _usr_time_get_elapsed_ticks(tick_ptr);
+ 531:../MQXLITE/kernel/time_ticks.c ****         return;
+ 532:../MQXLITE/kernel/time_ticks.c ****     }
+ 533:../MQXLITE/kernel/time_ticks.c **** #endif
+ 534:../MQXLITE/kernel/time_ticks.c **** 
+ 535:../MQXLITE/kernel/time_ticks.c ****     _GET_KERNEL_DATA(kernel_data);
+ 867              		.loc 1 535 0
+ 868 000e 224B     		ldr	r3, .L69
+ 869 0010 1B68     		ldr	r3, [r3]
+ 870 0012 FB60     		str	r3, [r7, #12]
+ 536:../MQXLITE/kernel/time_ticks.c **** 
+ 537:../MQXLITE/kernel/time_ticks.c ****     _INT_DISABLE();
+ 871              		.loc 1 537 0
+ 872 0014 FB68     		ldr	r3, [r7, #12]
+ 873 0016 DB69     		ldr	r3, [r3, #28]
+ 874 0018 9B6C     		ldr	r3, [r3, #72]
+ 875 001a 002B     		cmp	r3, #0
+ 876 001c 00D1     		bne	.L64
+ 877              		.loc 1 537 0 is_stmt 0 discriminator 1
+ 878              	@ 537 "../MQXLITE/kernel/time_ticks.c" 1
+ 879 001e 72B6     		cpsid i
+ 880              	@ 0 "" 2
+ 881              		.code	16
+ 882              	.L64:
+ 883              		.loc 1 537 0 discriminator 2
+ 884 0020 FB68     		ldr	r3, [r7, #12]
+ 885 0022 DB69     		ldr	r3, [r3, #28]
+ 886 0024 9A6C     		ldr	r2, [r3, #72]
+ 887 0026 0132     		add	r2, r2, #1
+ 888 0028 9A64     		str	r2, [r3, #72]
+ 538:../MQXLITE/kernel/time_ticks.c **** 
+ 539:../MQXLITE/kernel/time_ticks.c ****     *tick_ptr = kernel_data->TIME;
+ 889              		.loc 1 539 0 is_stmt 1 discriminator 2
+ 890 002a 7B68     		ldr	r3, [r7, #4]
+ 891 002c F968     		ldr	r1, [r7, #12]
+ 892 002e 8822     		mov	r2, #136
+ 893 0030 5200     		lsl	r2, r2, #1
+ 894 0032 8A18     		add	r2, r1, r2
+ 895 0034 13CA     		ldmia	r2!, {r0, r1, r4}
+ 896 0036 13C3     		stmia	r3!, {r0, r1, r4}
+ 540:../MQXLITE/kernel/time_ticks.c **** 
+ 541:../MQXLITE/kernel/time_ticks.c ****     if (kernel_data->GET_HWTICKS) {
+ 897              		.loc 1 541 0 discriminator 2
+ 898 0038 FA68     		ldr	r2, [r7, #12]
+ 899 003a A423     		mov	r3, #164
+ 900 003c 5B00     		lsl	r3, r3, #1
+ 901 003e D358     		ldr	r3, [r2, r3]
+ 902 0040 002B     		cmp	r3, #0
+ 903 0042 0CD0     		beq	.L65
+ 542:../MQXLITE/kernel/time_ticks.c ****         /* The hardware clock may have counted passed it's reference
+ 543:../MQXLITE/kernel/time_ticks.c ****          * and have an interrupt pending.  Thus, HW_TICKS may exceed
+ 544:../MQXLITE/kernel/time_ticks.c ****          * kernel_data->HW_TICKS_PER_TICK and this tick_ptr may need
+ 545:../MQXLITE/kernel/time_ticks.c ****          * normalizing.  This is done in a moment.
+ 546:../MQXLITE/kernel/time_ticks.c ****          */
+ 547:../MQXLITE/kernel/time_ticks.c ****         tick_ptr->HW_TICKS = (*kernel_data->GET_HWTICKS)(kernel_data->GET_HWTICKS_PARAM);
+ 904              		.loc 1 547 0
+ 905 0044 FA68     		ldr	r2, [r7, #12]
+ 906 0046 A423     		mov	r3, #164
+ 907 0048 5B00     		lsl	r3, r3, #1
+ 908 004a D358     		ldr	r3, [r2, r3]
+ 909 004c F968     		ldr	r1, [r7, #12]
+ 910 004e A622     		mov	r2, #166
+ 911 0050 5200     		lsl	r2, r2, #1
+ 912 0052 8A58     		ldr	r2, [r1, r2]
+ 913 0054 101C     		mov	r0, r2
+ 914 0056 9847     		blx	r3
+ 915 0058 021C     		mov	r2, r0
+ 916 005a 7B68     		ldr	r3, [r7, #4]
+ 917 005c 9A60     		str	r2, [r3, #8]
+ 918              	.L65:
+ 548:../MQXLITE/kernel/time_ticks.c ****     } /* Endif */
+ 549:../MQXLITE/kernel/time_ticks.c **** 
+ 550:../MQXLITE/kernel/time_ticks.c ****     /* The timer ISR may go off and increment kernel_data->TIME */
+ 551:../MQXLITE/kernel/time_ticks.c ****     _INT_ENABLE();
+ 919              		.loc 1 551 0
+ 920 005e FB68     		ldr	r3, [r7, #12]
+ 921 0060 DB69     		ldr	r3, [r3, #28]
+ 922 0062 9B6C     		ldr	r3, [r3, #72]
+ 923 0064 002B     		cmp	r3, #0
+ 924 0066 0ED0     		beq	.L66
+ 925              		.loc 1 551 0 is_stmt 0 discriminator 1
+ 926 0068 FB68     		ldr	r3, [r7, #12]
+ 927 006a DB69     		ldr	r3, [r3, #28]
+ 928 006c 9A6C     		ldr	r2, [r3, #72]
+ 929 006e 013A     		sub	r2, r2, #1
+ 930 0070 9A64     		str	r2, [r3, #72]
+ 931 0072 9B6C     		ldr	r3, [r3, #72]
+ 932 0074 002B     		cmp	r3, #0
+ 933 0076 06D1     		bne	.L66
+ 934              		.loc 1 551 0 discriminator 2
+ 935 0078 FB68     		ldr	r3, [r7, #12]
+ 936 007a 1B8B     		ldrh	r3, [r3, #24]
+ 937 007c 002B     		cmp	r3, #0
+ 938 007e 01D0     		beq	.L67
+ 939              		.loc 1 551 0 discriminator 3
+ 940              	@ 551 "../MQXLITE/kernel/time_ticks.c" 1
+ 941 0080 62B6     		cpsie i
+ 942              	@ 0 "" 2
+ 943              		.code	16
+ 944 0082 00E0     		b	.L66
+ 945              	.L67:
+ 946              		.loc 1 551 0 discriminator 4
+ 947              	@ 551 "../MQXLITE/kernel/time_ticks.c" 1
+ 948 0084 62B6     		cpsie i
+ 949              	@ 0 "" 2
+ 950              		.code	16
+ 951              	.L66:
+ 552:../MQXLITE/kernel/time_ticks.c **** 
+ 553:../MQXLITE/kernel/time_ticks.c ****     /* The tick_ptr->HW_TICKS value might exceed the
+ 554:../MQXLITE/kernel/time_ticks.c ****      * kernel_data->HW_TICKS_PER_TICK and need to be
+ 555:../MQXLITE/kernel/time_ticks.c ****      * normalized for the PSP.
+ 556:../MQXLITE/kernel/time_ticks.c ****      */
+ 557:../MQXLITE/kernel/time_ticks.c ****     PSP_NORMALIZE_TICKS(tick_ptr);
+ 952              		.loc 1 557 0 is_stmt 1
+ 953 0086 7B68     		ldr	r3, [r7, #4]
+ 954 0088 181C     		mov	r0, r3
+ 955 008a FFF7FEFF 		bl	_psp_normalize_ticks
+ 956 008e 00E0     		b	.L61
+ 957              	.L68:
+ 524:../MQXLITE/kernel/time_ticks.c ****         return;
+ 958              		.loc 1 524 0
+ 959 0090 C046     		mov	r8, r8
+ 960              	.L61:
+ 558:../MQXLITE/kernel/time_ticks.c **** 
+ 559:../MQXLITE/kernel/time_ticks.c **** }
+ 961              		.loc 1 559 0
+ 962 0092 BD46     		mov	sp, r7
+ 963 0094 05B0     		add	sp, sp, #20
+ 964              		@ sp needed for prologue
+ 965 0096 90BD     		pop	{r4, r7, pc}
+ 966              	.L70:
+ 967              		.align	2
+ 968              	.L69:
+ 969 0098 00000000 		.word	_mqx_kernel_data
+ 970              		.cfi_endproc
+ 971              	.LFE8:
+ 973              		.section	.text._time_get_elapsed_ticks_fast,"ax",%progbits
+ 974              		.align	2
+ 975              		.global	_time_get_elapsed_ticks_fast
+ 976              		.code	16
+ 977              		.thumb_func
+ 979              	_time_get_elapsed_ticks_fast:
+ 980              	.LFB9:
+ 560:../MQXLITE/kernel/time_ticks.c **** 
+ 561:../MQXLITE/kernel/time_ticks.c **** #if MQX_ENABLE_USER_MODE
+ 562:../MQXLITE/kernel/time_ticks.c **** /*!
+ 563:../MQXLITE/kernel/time_ticks.c ****  * \brief Get the time elapsed since MQX started in tick time.
+ 564:../MQXLITE/kernel/time_ticks.c ****  *
+ 565:../MQXLITE/kernel/time_ticks.c ****  * This function is an equivalent to the _time_get_elapsed_ticks() API call but
+ 566:../MQXLITE/kernel/time_ticks.c ****  * it can be executed from within the User task or other code running in the CPU
+ 567:../MQXLITE/kernel/time_ticks.c ****  * User mode. Parameters passed to this function by pointer are required to meet
+ 568:../MQXLITE/kernel/time_ticks.c ****  * the memory protection requirements as described in the parameter list below.
+ 569:../MQXLITE/kernel/time_ticks.c ****  *
+ 570:../MQXLITE/kernel/time_ticks.c ****  * \param[in,out] tick_ptr Read/write. Where to store the elapsed tick time.
+ 571:../MQXLITE/kernel/time_ticks.c ****  *
+ 572:../MQXLITE/kernel/time_ticks.c ****  * \see _time_get_elapsed_ticks
+ 573:../MQXLITE/kernel/time_ticks.c ****  * \see _usr_time_delay
+ 574:../MQXLITE/kernel/time_ticks.c ****  * \see _usr_time_delay_ticks
+ 575:../MQXLITE/kernel/time_ticks.c ****  * \see MQX_TICK_STRUCT
+ 576:../MQXLITE/kernel/time_ticks.c ****  */
+ 577:../MQXLITE/kernel/time_ticks.c **** void _usr_time_get_elapsed_ticks
+ 578:../MQXLITE/kernel/time_ticks.c **** (
+ 579:../MQXLITE/kernel/time_ticks.c ****     MQX_TICK_STRUCT_PTR tick_ptr
+ 580:../MQXLITE/kernel/time_ticks.c **** )
+ 581:../MQXLITE/kernel/time_ticks.c **** {
+ 582:../MQXLITE/kernel/time_ticks.c ****     MQX_API_CALL_PARAMS params = {(uint_32)tick_ptr, 0, 0, 0, 0};
+ 583:../MQXLITE/kernel/time_ticks.c ****     _mqx_api_call(MQX_API_TIME_GET_ELAPSED_TICKS, &params);
+ 584:../MQXLITE/kernel/time_ticks.c **** }
+ 585:../MQXLITE/kernel/time_ticks.c **** 
+ 586:../MQXLITE/kernel/time_ticks.c **** #endif /* MQX_ENABLE_USER_MODE */
+ 587:../MQXLITE/kernel/time_ticks.c **** 
+ 588:../MQXLITE/kernel/time_ticks.c **** #if MQX_HAS_TICK
+ 589:../MQXLITE/kernel/time_ticks.c **** /*!
+ 590:../MQXLITE/kernel/time_ticks.c ****  * \brief Get the time elapsed since MQX started in tick time.
+ 591:../MQXLITE/kernel/time_ticks.c ****  *
+ 592:../MQXLITE/kernel/time_ticks.c ****  * The function always returns elapsed time; it is not affected by _time_set() or
+ 593:../MQXLITE/kernel/time_ticks.c ****  * _time_set_ticks().
+ 594:../MQXLITE/kernel/time_ticks.c ****  * \n The only difference between _time_get_elapsed_ticks_fast and
+ 595:../MQXLITE/kernel/time_ticks.c ****  * _time_get_elapsed_ticks is that this one is supposed to be called from code
+ 596:../MQXLITE/kernel/time_ticks.c ****  * with interrupts DISABLED. Do not use this function with interrupts ENABLED.
+ 597:../MQXLITE/kernel/time_ticks.c ****  *
+ 598:../MQXLITE/kernel/time_ticks.c ****  * \param[in,out] tick_ptr Where to store the elapsed tick time.
+ 599:../MQXLITE/kernel/time_ticks.c ****  *
+ 600:../MQXLITE/kernel/time_ticks.c ****  * \see _time_get_elapsed_ticks
+ 601:../MQXLITE/kernel/time_ticks.c ****  * \see _time_get
+ 602:../MQXLITE/kernel/time_ticks.c ****  * \see _time_get_ticks
+ 603:../MQXLITE/kernel/time_ticks.c ****  * \see _time_set
+ 604:../MQXLITE/kernel/time_ticks.c ****  * \see _time_set_ticks
+ 605:../MQXLITE/kernel/time_ticks.c ****  * \see MQX_TICK_STRUCT
+ 606:../MQXLITE/kernel/time_ticks.c ****  */
+ 607:../MQXLITE/kernel/time_ticks.c **** void _time_get_elapsed_ticks_fast
+ 608:../MQXLITE/kernel/time_ticks.c **** (
+ 609:../MQXLITE/kernel/time_ticks.c ****     MQX_TICK_STRUCT_PTR tick_ptr
+ 610:../MQXLITE/kernel/time_ticks.c **** )
+ 611:../MQXLITE/kernel/time_ticks.c **** { /* Body */
+ 981              		.loc 1 611 0
+ 982              		.cfi_startproc
+ 983 0000 90B5     		push	{r4, r7, lr}
+ 984              	.LCFI25:
+ 985              		.cfi_def_cfa_offset 12
+ 986              		.cfi_offset 4, -12
+ 987              		.cfi_offset 7, -8
+ 988              		.cfi_offset 14, -4
+ 989 0002 85B0     		sub	sp, sp, #20
+ 990              	.LCFI26:
+ 991              		.cfi_def_cfa_offset 32
+ 992 0004 00AF     		add	r7, sp, #0
+ 993              	.LCFI27:
+ 994              		.cfi_def_cfa_register 7
+ 995 0006 7860     		str	r0, [r7, #4]
+ 612:../MQXLITE/kernel/time_ticks.c ****     KERNEL_DATA_STRUCT_PTR kernel_data;
+ 613:../MQXLITE/kernel/time_ticks.c **** 
+ 614:../MQXLITE/kernel/time_ticks.c **** #if MQX_CHECK_ERRORS
+ 615:../MQXLITE/kernel/time_ticks.c ****     if ( tick_ptr == NULL ) {
+ 996              		.loc 1 615 0
+ 997 0008 7B68     		ldr	r3, [r7, #4]
+ 998 000a 002B     		cmp	r3, #0
+ 999 000c 21D0     		beq	.L75
+ 1000              	.L72:
+ 616:../MQXLITE/kernel/time_ticks.c ****         return;
+ 617:../MQXLITE/kernel/time_ticks.c ****     } /* Endif */
+ 618:../MQXLITE/kernel/time_ticks.c **** #endif
+ 619:../MQXLITE/kernel/time_ticks.c **** 
+ 620:../MQXLITE/kernel/time_ticks.c ****     _GET_KERNEL_DATA(kernel_data);
+ 1001              		.loc 1 620 0
+ 1002 000e 134B     		ldr	r3, .L76
+ 1003 0010 1B68     		ldr	r3, [r3]
+ 1004 0012 FB60     		str	r3, [r7, #12]
+ 621:../MQXLITE/kernel/time_ticks.c **** 
+ 622:../MQXLITE/kernel/time_ticks.c ****     *tick_ptr = kernel_data->TIME;
+ 1005              		.loc 1 622 0
+ 1006 0014 7B68     		ldr	r3, [r7, #4]
+ 1007 0016 F968     		ldr	r1, [r7, #12]
+ 1008 0018 8822     		mov	r2, #136
+ 1009 001a 5200     		lsl	r2, r2, #1
+ 1010 001c 8A18     		add	r2, r1, r2
+ 1011 001e 13CA     		ldmia	r2!, {r0, r1, r4}
+ 1012 0020 13C3     		stmia	r3!, {r0, r1, r4}
+ 623:../MQXLITE/kernel/time_ticks.c **** 
+ 624:../MQXLITE/kernel/time_ticks.c ****     if (kernel_data->GET_HWTICKS) {
+ 1013              		.loc 1 624 0
+ 1014 0022 FA68     		ldr	r2, [r7, #12]
+ 1015 0024 A423     		mov	r3, #164
+ 1016 0026 5B00     		lsl	r3, r3, #1
+ 1017 0028 D358     		ldr	r3, [r2, r3]
+ 1018 002a 002B     		cmp	r3, #0
+ 1019 002c 0CD0     		beq	.L74
+ 625:../MQXLITE/kernel/time_ticks.c ****         /* The hardware clock may have counted passed it's reference
+ 626:../MQXLITE/kernel/time_ticks.c ****          * and have an interrupt pending.  Thus, HW_TICKS may exceed
+ 627:../MQXLITE/kernel/time_ticks.c ****          * kernel_data->HW_TICKS_PER_TICK and this tick_ptr may need
+ 628:../MQXLITE/kernel/time_ticks.c ****          * normalizing.  This is done in a moment.
+ 629:../MQXLITE/kernel/time_ticks.c ****          */
+ 630:../MQXLITE/kernel/time_ticks.c ****         tick_ptr->HW_TICKS = (*kernel_data->GET_HWTICKS)(kernel_data->GET_HWTICKS_PARAM);
+ 1020              		.loc 1 630 0
+ 1021 002e FA68     		ldr	r2, [r7, #12]
+ 1022 0030 A423     		mov	r3, #164
+ 1023 0032 5B00     		lsl	r3, r3, #1
+ 1024 0034 D358     		ldr	r3, [r2, r3]
+ 1025 0036 F968     		ldr	r1, [r7, #12]
+ 1026 0038 A622     		mov	r2, #166
+ 1027 003a 5200     		lsl	r2, r2, #1
+ 1028 003c 8A58     		ldr	r2, [r1, r2]
+ 1029 003e 101C     		mov	r0, r2
+ 1030 0040 9847     		blx	r3
+ 1031 0042 021C     		mov	r2, r0
+ 1032 0044 7B68     		ldr	r3, [r7, #4]
+ 1033 0046 9A60     		str	r2, [r3, #8]
+ 1034              	.L74:
+ 631:../MQXLITE/kernel/time_ticks.c ****     } /* Endif */
+ 632:../MQXLITE/kernel/time_ticks.c **** 
+ 633:../MQXLITE/kernel/time_ticks.c ****     /* The tick_ptr->HW_TICKS value might exceed the
+ 634:../MQXLITE/kernel/time_ticks.c ****      * kernel_data->HW_TICKS_PER_TICK and need to be
+ 635:../MQXLITE/kernel/time_ticks.c ****      * normalized for the PSP.
+ 636:../MQXLITE/kernel/time_ticks.c ****      */
+ 637:../MQXLITE/kernel/time_ticks.c ****     PSP_NORMALIZE_TICKS(tick_ptr);
+ 1035              		.loc 1 637 0
+ 1036 0048 7B68     		ldr	r3, [r7, #4]
+ 1037 004a 181C     		mov	r0, r3
+ 1038 004c FFF7FEFF 		bl	_psp_normalize_ticks
+ 1039 0050 00E0     		b	.L71
+ 1040              	.L75:
+ 616:../MQXLITE/kernel/time_ticks.c ****         return;
+ 1041              		.loc 1 616 0
+ 1042 0052 C046     		mov	r8, r8
+ 1043              	.L71:
+ 638:../MQXLITE/kernel/time_ticks.c **** 
+ 639:../MQXLITE/kernel/time_ticks.c **** } /* Endbody */
+ 1044              		.loc 1 639 0
+ 1045 0054 BD46     		mov	sp, r7
+ 1046 0056 05B0     		add	sp, sp, #20
+ 1047              		@ sp needed for prologue
+ 1048 0058 90BD     		pop	{r4, r7, pc}
+ 1049              	.L77:
+ 1050 005a C046     		.align	2
+ 1051              	.L76:
+ 1052 005c 00000000 		.word	_mqx_kernel_data
+ 1053              		.cfi_endproc
+ 1054              	.LFE9:
+ 1056              		.section	.text._time_get_hwticks,"ax",%progbits
+ 1057              		.align	2
+ 1058              		.global	_time_get_hwticks
+ 1059              		.code	16
+ 1060              		.thumb_func
+ 1062              	_time_get_hwticks:
+ 1063              	.LFB10:
+ 640:../MQXLITE/kernel/time_ticks.c **** #endif /* MQX_HAS_TICK */
+ 641:../MQXLITE/kernel/time_ticks.c **** 
+ 642:../MQXLITE/kernel/time_ticks.c **** #if MQX_HAS_HW_TICKS
+ 643:../MQXLITE/kernel/time_ticks.c **** /*!
+ 644:../MQXLITE/kernel/time_ticks.c ****  * \brief Gets the number of hardware ticks since the last tick.
+ 645:../MQXLITE/kernel/time_ticks.c ****  *
+ 646:../MQXLITE/kernel/time_ticks.c ****  * \return Number of hardware ticks since the last tick.
+ 647:../MQXLITE/kernel/time_ticks.c ****  *
+ 648:../MQXLITE/kernel/time_ticks.c ****  * \see _time_get_hwticks_per_tick
+ 649:../MQXLITE/kernel/time_ticks.c ****  * \see _time_set_hwticks_per_tick
+ 650:../MQXLITE/kernel/time_ticks.c ****  */
+ 651:../MQXLITE/kernel/time_ticks.c **** uint_32 _time_get_hwticks
+ 652:../MQXLITE/kernel/time_ticks.c **** (
+ 653:../MQXLITE/kernel/time_ticks.c ****     void
+ 654:../MQXLITE/kernel/time_ticks.c **** )
+ 655:../MQXLITE/kernel/time_ticks.c **** { /* Body */
+ 1064              		.loc 1 655 0
+ 1065              		.cfi_startproc
+ 1066 0000 80B5     		push	{r7, lr}
+ 1067              	.LCFI28:
+ 1068              		.cfi_def_cfa_offset 8
+ 1069              		.cfi_offset 7, -8
+ 1070              		.cfi_offset 14, -4
+ 1071 0002 82B0     		sub	sp, sp, #8
+ 1072              	.LCFI29:
+ 1073              		.cfi_def_cfa_offset 16
+ 1074 0004 00AF     		add	r7, sp, #0
+ 1075              	.LCFI30:
+ 1076              		.cfi_def_cfa_register 7
+ 656:../MQXLITE/kernel/time_ticks.c ****     KERNEL_DATA_STRUCT_PTR kernel_data;
+ 657:../MQXLITE/kernel/time_ticks.c **** 
+ 658:../MQXLITE/kernel/time_ticks.c ****     _GET_KERNEL_DATA(kernel_data);
+ 1077              		.loc 1 658 0
+ 1078 0006 0D4B     		ldr	r3, .L81
+ 1079 0008 1B68     		ldr	r3, [r3]
+ 1080 000a 7B60     		str	r3, [r7, #4]
+ 659:../MQXLITE/kernel/time_ticks.c **** 
+ 660:../MQXLITE/kernel/time_ticks.c ****     if (kernel_data->GET_HWTICKS) {
+ 1081              		.loc 1 660 0
+ 1082 000c 7A68     		ldr	r2, [r7, #4]
+ 1083 000e A423     		mov	r3, #164
+ 1084 0010 5B00     		lsl	r3, r3, #1
+ 1085 0012 D358     		ldr	r3, [r2, r3]
+ 1086 0014 002B     		cmp	r3, #0
+ 1087 0016 0BD0     		beq	.L79
+ 661:../MQXLITE/kernel/time_ticks.c ****         return (*kernel_data->GET_HWTICKS)(kernel_data->GET_HWTICKS_PARAM);
+ 1088              		.loc 1 661 0
+ 1089 0018 7A68     		ldr	r2, [r7, #4]
+ 1090 001a A423     		mov	r3, #164
+ 1091 001c 5B00     		lsl	r3, r3, #1
+ 1092 001e D358     		ldr	r3, [r2, r3]
+ 1093 0020 7968     		ldr	r1, [r7, #4]
+ 1094 0022 A622     		mov	r2, #166
+ 1095 0024 5200     		lsl	r2, r2, #1
+ 1096 0026 8A58     		ldr	r2, [r1, r2]
+ 1097 0028 101C     		mov	r0, r2
+ 1098 002a 9847     		blx	r3
+ 1099 002c 031C     		mov	r3, r0
+ 1100 002e 00E0     		b	.L80
+ 1101              	.L79:
+ 662:../MQXLITE/kernel/time_ticks.c ****     } /* Endif */
+ 663:../MQXLITE/kernel/time_ticks.c **** 
+ 664:../MQXLITE/kernel/time_ticks.c ****     return 0;
+ 1102              		.loc 1 664 0
+ 1103 0030 0023     		mov	r3, #0
+ 1104              	.L80:
+ 665:../MQXLITE/kernel/time_ticks.c **** 
+ 666:../MQXLITE/kernel/time_ticks.c **** } /* Endbody */
+ 1105              		.loc 1 666 0
+ 1106 0032 181C     		mov	r0, r3
+ 1107 0034 BD46     		mov	sp, r7
+ 1108 0036 02B0     		add	sp, sp, #8
+ 1109              		@ sp needed for prologue
+ 1110 0038 80BD     		pop	{r7, pc}
+ 1111              	.L82:
+ 1112 003a C046     		.align	2
+ 1113              	.L81:
+ 1114 003c 00000000 		.word	_mqx_kernel_data
+ 1115              		.cfi_endproc
+ 1116              	.LFE10:
+ 1118              		.section	.text._time_get_ticks,"ax",%progbits
+ 1119              		.align	2
+ 1120              		.global	_time_get_ticks
+ 1121              		.code	16
+ 1122              		.thumb_func
+ 1124              	_time_get_ticks:
+ 1125              	.LFB11:
+ 667:../MQXLITE/kernel/time_ticks.c **** #endif /* MQX_HAS_HW_TICKS */
+ 668:../MQXLITE/kernel/time_ticks.c **** 
+ 669:../MQXLITE/kernel/time_ticks.c **** #if MQX_HAS_TICK
+ 670:../MQXLITE/kernel/time_ticks.c **** /*!
+ 671:../MQXLITE/kernel/time_ticks.c ****  * \brief Get the absolute time in tick time.
+ 672:../MQXLITE/kernel/time_ticks.c ****  *
+ 673:../MQXLITE/kernel/time_ticks.c ****  * If the application changed the absolute time with _time_set_ticks(),
+ 674:../MQXLITE/kernel/time_ticks.c ****  * _time_get_ticks() returns the time that was set plus the number of  ticks since
+ 675:../MQXLITE/kernel/time_ticks.c ****  * the time was set.
+ 676:../MQXLITE/kernel/time_ticks.c ****  * \n If the application has not changed the absolute time with _time_set_ticks(),
+ 677:../MQXLITE/kernel/time_ticks.c ****  * _time_get_ticks() returns the same as _time_get_elapsed_ticks(), which is the
+ 678:../MQXLITE/kernel/time_ticks.c ****  * number of ticks since MQX started.
+ 679:../MQXLITE/kernel/time_ticks.c ****  *
+ 680:../MQXLITE/kernel/time_ticks.c ****  * \param[in,out] tick_ptr Where to store the absolute time in tick time.
+ 681:../MQXLITE/kernel/time_ticks.c ****  *
+ 682:../MQXLITE/kernel/time_ticks.c ****  * \see _time_get
+ 683:../MQXLITE/kernel/time_ticks.c ****  * \see _time_get_elapsed
+ 684:../MQXLITE/kernel/time_ticks.c ****  * \see _time_get_elapsed_ticks
+ 685:../MQXLITE/kernel/time_ticks.c ****  * \see _time_set
+ 686:../MQXLITE/kernel/time_ticks.c ****  * \see _time_set_ticks
+ 687:../MQXLITE/kernel/time_ticks.c ****  * \see MQX_TICK_STRUCT
+ 688:../MQXLITE/kernel/time_ticks.c ****  */
+ 689:../MQXLITE/kernel/time_ticks.c **** void _time_get_ticks
+ 690:../MQXLITE/kernel/time_ticks.c **** (
+ 691:../MQXLITE/kernel/time_ticks.c ****     register MQX_TICK_STRUCT_PTR tick_ptr
+ 692:../MQXLITE/kernel/time_ticks.c **** )
+ 693:../MQXLITE/kernel/time_ticks.c **** { /* Body */
+ 1126              		.loc 1 693 0
+ 1127              		.cfi_startproc
+ 1128 0000 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 1129              	.LCFI31:
+ 1130              		.cfi_def_cfa_offset 24
+ 1131              		.cfi_offset 3, -24
+ 1132              		.cfi_offset 4, -20
+ 1133              		.cfi_offset 5, -16
+ 1134              		.cfi_offset 6, -12
+ 1135              		.cfi_offset 7, -8
+ 1136              		.cfi_offset 14, -4
+ 1137 0002 00AF     		add	r7, sp, #0
+ 1138              	.LCFI32:
+ 1139              		.cfi_def_cfa_register 7
+ 1140 0004 051C     		mov	r5, r0
+ 694:../MQXLITE/kernel/time_ticks.c ****     register KERNEL_DATA_STRUCT_PTR kernel_data;
+ 695:../MQXLITE/kernel/time_ticks.c **** 
+ 696:../MQXLITE/kernel/time_ticks.c **** #if MQX_CHECK_ERRORS
+ 697:../MQXLITE/kernel/time_ticks.c ****     if ( tick_ptr == NULL ) {
+ 1141              		.loc 1 697 0
+ 1142 0006 3CD0     		beq	.L90
+ 1143              	.L84:
+ 698:../MQXLITE/kernel/time_ticks.c ****         return;
+ 699:../MQXLITE/kernel/time_ticks.c ****     } /* Endif */
+ 700:../MQXLITE/kernel/time_ticks.c **** #endif
+ 701:../MQXLITE/kernel/time_ticks.c **** 
+ 702:../MQXLITE/kernel/time_ticks.c ****     _GET_KERNEL_DATA(kernel_data);
+ 1144              		.loc 1 702 0
+ 1145 0008 1F4B     		ldr	r3, .L91
+ 1146 000a 1C68     		ldr	r4, [r3]
+ 703:../MQXLITE/kernel/time_ticks.c **** 
+ 704:../MQXLITE/kernel/time_ticks.c ****     _INT_DISABLE();
+ 1147              		.loc 1 704 0
+ 1148 000c E369     		ldr	r3, [r4, #28]
+ 1149 000e 9B6C     		ldr	r3, [r3, #72]
+ 1150 0010 002B     		cmp	r3, #0
+ 1151 0012 00D1     		bne	.L86
+ 1152              		.loc 1 704 0 is_stmt 0 discriminator 1
+ 1153              	@ 704 "../MQXLITE/kernel/time_ticks.c" 1
+ 1154 0014 72B6     		cpsid i
+ 1155              	@ 0 "" 2
+ 1156              		.code	16
+ 1157              	.L86:
+ 1158              		.loc 1 704 0 discriminator 2
+ 1159 0016 E369     		ldr	r3, [r4, #28]
+ 1160 0018 9A6C     		ldr	r2, [r3, #72]
+ 1161 001a 0132     		add	r2, r2, #1
+ 1162 001c 9A64     		str	r2, [r3, #72]
+ 705:../MQXLITE/kernel/time_ticks.c **** 
+ 706:../MQXLITE/kernel/time_ticks.c ****     *tick_ptr = kernel_data->TIME;
+ 1163              		.loc 1 706 0 is_stmt 1 discriminator 2
+ 1164 001e 8823     		mov	r3, #136
+ 1165 0020 5A00     		lsl	r2, r3, #1
+ 1166 0022 2B1C     		mov	r3, r5
+ 1167 0024 A218     		add	r2, r4, r2
+ 1168 0026 43CA     		ldmia	r2!, {r0, r1, r6}
+ 1169 0028 43C3     		stmia	r3!, {r0, r1, r6}
+ 707:../MQXLITE/kernel/time_ticks.c **** 
+ 708:../MQXLITE/kernel/time_ticks.c ****     /* The hardware clock keeps counting... */
+ 709:../MQXLITE/kernel/time_ticks.c **** 
+ 710:../MQXLITE/kernel/time_ticks.c ****     if (kernel_data->GET_HWTICKS) {
+ 1170              		.loc 1 710 0 discriminator 2
+ 1171 002a A423     		mov	r3, #164
+ 1172 002c 5B00     		lsl	r3, r3, #1
+ 1173 002e E358     		ldr	r3, [r4, r3]
+ 1174 0030 002B     		cmp	r3, #0
+ 1175 0032 09D0     		beq	.L87
+ 711:../MQXLITE/kernel/time_ticks.c ****         /* The hardware clock may have counted passed it's reference
+ 712:../MQXLITE/kernel/time_ticks.c ****          * and have an interrupt pending.  Thus, HW_TICKS may exceed
+ 713:../MQXLITE/kernel/time_ticks.c ****          * kernel_data->HW_TICKS_PER_TICK and this tick_ptr may need
+ 714:../MQXLITE/kernel/time_ticks.c ****          * normalizing.  This is done in a moment.
+ 715:../MQXLITE/kernel/time_ticks.c ****          */
+ 716:../MQXLITE/kernel/time_ticks.c ****         tick_ptr->HW_TICKS = (*kernel_data->GET_HWTICKS)(kernel_data->GET_HWTICKS_PARAM);
+ 1176              		.loc 1 716 0
+ 1177 0034 A423     		mov	r3, #164
+ 1178 0036 5B00     		lsl	r3, r3, #1
+ 1179 0038 E358     		ldr	r3, [r4, r3]
+ 1180 003a A622     		mov	r2, #166
+ 1181 003c 5200     		lsl	r2, r2, #1
+ 1182 003e A258     		ldr	r2, [r4, r2]
+ 1183 0040 101C     		mov	r0, r2
+ 1184 0042 9847     		blx	r3
+ 1185 0044 031C     		mov	r3, r0
+ 1186 0046 AB60     		str	r3, [r5, #8]
+ 1187              	.L87:
+ 717:../MQXLITE/kernel/time_ticks.c ****     } /* Endif */
+ 718:../MQXLITE/kernel/time_ticks.c **** 
+ 719:../MQXLITE/kernel/time_ticks.c ****     PSP_ADD_TICKS(tick_ptr, &kernel_data->TIME_OFFSET, tick_ptr);
+ 1188              		.loc 1 719 0
+ 1189 0048 8E20     		mov	r0, #142
+ 1190 004a 4000     		lsl	r0, r0, #1
+ 1191 004c 2318     		add	r3, r4, r0
+ 1192 004e 281C     		mov	r0, r5
+ 1193 0050 191C     		mov	r1, r3
+ 1194 0052 2A1C     		mov	r2, r5
+ 1195 0054 FFF7FEFF 		bl	_psp_add_ticks
+ 720:../MQXLITE/kernel/time_ticks.c **** 
+ 721:../MQXLITE/kernel/time_ticks.c ****     /* The timer ISR may go off and increment kernel_data->TIME */
+ 722:../MQXLITE/kernel/time_ticks.c ****     _INT_ENABLE();
+ 1196              		.loc 1 722 0
+ 1197 0058 E369     		ldr	r3, [r4, #28]
+ 1198 005a 9B6C     		ldr	r3, [r3, #72]
+ 1199 005c 002B     		cmp	r3, #0
+ 1200 005e 0CD0     		beq	.L88
+ 1201              		.loc 1 722 0 is_stmt 0 discriminator 1
+ 1202 0060 E369     		ldr	r3, [r4, #28]
+ 1203 0062 9A6C     		ldr	r2, [r3, #72]
+ 1204 0064 013A     		sub	r2, r2, #1
+ 1205 0066 9A64     		str	r2, [r3, #72]
+ 1206 0068 9B6C     		ldr	r3, [r3, #72]
+ 1207 006a 002B     		cmp	r3, #0
+ 1208 006c 05D1     		bne	.L88
+ 1209              		.loc 1 722 0 discriminator 2
+ 1210 006e 238B     		ldrh	r3, [r4, #24]
+ 1211 0070 002B     		cmp	r3, #0
+ 1212 0072 01D0     		beq	.L89
+ 1213              		.loc 1 722 0 discriminator 3
+ 1214              	@ 722 "../MQXLITE/kernel/time_ticks.c" 1
+ 1215 0074 62B6     		cpsie i
+ 1216              	@ 0 "" 2
+ 1217              		.code	16
+ 1218 0076 00E0     		b	.L88
+ 1219              	.L89:
+ 1220              		.loc 1 722 0 discriminator 4
+ 1221              	@ 722 "../MQXLITE/kernel/time_ticks.c" 1
+ 1222 0078 62B6     		cpsie i
+ 1223              	@ 0 "" 2
+ 1224              		.code	16
+ 1225              	.L88:
+ 723:../MQXLITE/kernel/time_ticks.c **** 
+ 724:../MQXLITE/kernel/time_ticks.c ****     /* The tick_ptr->HW_TICKS value might exceed the
+ 725:../MQXLITE/kernel/time_ticks.c ****      * kernel_data->HW_TICKS_PER_TICK and need to be
+ 726:../MQXLITE/kernel/time_ticks.c ****      * normalized for the PSP.
+ 727:../MQXLITE/kernel/time_ticks.c ****      */
+ 728:../MQXLITE/kernel/time_ticks.c ****     PSP_NORMALIZE_TICKS(tick_ptr);
+ 1226              		.loc 1 728 0 is_stmt 1
+ 1227 007a 281C     		mov	r0, r5
+ 1228 007c FFF7FEFF 		bl	_psp_normalize_ticks
+ 1229 0080 00E0     		b	.L83
+ 1230              	.L90:
+ 698:../MQXLITE/kernel/time_ticks.c ****         return;
+ 1231              		.loc 1 698 0
+ 1232 0082 C046     		mov	r8, r8
+ 1233              	.L83:
+ 729:../MQXLITE/kernel/time_ticks.c **** 
+ 730:../MQXLITE/kernel/time_ticks.c **** } /* Endbody */
+ 1234              		.loc 1 730 0
+ 1235 0084 BD46     		mov	sp, r7
+ 1236              		@ sp needed for prologue
+ 1237 0086 F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 1238              	.L92:
+ 1239              		.align	2
+ 1240              	.L91:
+ 1241 0088 00000000 		.word	_mqx_kernel_data
+ 1242              		.cfi_endproc
+ 1243              	.LFE11:
+ 1245              		.section	.text._time_get_hwticks_per_tick,"ax",%progbits
+ 1246              		.align	2
+ 1247              		.global	_time_get_hwticks_per_tick
+ 1248              		.code	16
+ 1249              		.thumb_func
+ 1251              	_time_get_hwticks_per_tick:
+ 1252              	.LFB12:
+ 731:../MQXLITE/kernel/time_ticks.c **** #endif /* MQX_HAS_TICK */
+ 732:../MQXLITE/kernel/time_ticks.c **** 
+ 733:../MQXLITE/kernel/time_ticks.c **** #if MQX_HAS_HW_TICKS
+ 734:../MQXLITE/kernel/time_ticks.c **** /*!
+ 735:../MQXLITE/kernel/time_ticks.c ****  * \brief Gets the number of hardware ticks per tick.
+ 736:../MQXLITE/kernel/time_ticks.c ****  *
+ 737:../MQXLITE/kernel/time_ticks.c ****  * \return Number of hardware ticks per tick.
+ 738:../MQXLITE/kernel/time_ticks.c ****  *
+ 739:../MQXLITE/kernel/time_ticks.c ****  * \see _time_set_hwticks_per_tick
+ 740:../MQXLITE/kernel/time_ticks.c ****  * \see _time_get_hwticks
+ 741:../MQXLITE/kernel/time_ticks.c ****  */
+ 742:../MQXLITE/kernel/time_ticks.c **** uint_32 _time_get_hwticks_per_tick
+ 743:../MQXLITE/kernel/time_ticks.c **** (
+ 744:../MQXLITE/kernel/time_ticks.c ****     void
+ 745:../MQXLITE/kernel/time_ticks.c **** )
+ 746:../MQXLITE/kernel/time_ticks.c **** { /* Body */
+ 1253              		.loc 1 746 0
+ 1254              		.cfi_startproc
+ 1255 0000 90B5     		push	{r4, r7, lr}
+ 1256              	.LCFI33:
+ 1257              		.cfi_def_cfa_offset 12
+ 1258              		.cfi_offset 4, -12
+ 1259              		.cfi_offset 7, -8
+ 1260              		.cfi_offset 14, -4
+ 1261 0002 00AF     		add	r7, sp, #0
+ 1262              	.LCFI34:
+ 1263              		.cfi_def_cfa_register 7
+ 747:../MQXLITE/kernel/time_ticks.c ****     register KERNEL_DATA_STRUCT_PTR kernel_data;
+ 748:../MQXLITE/kernel/time_ticks.c **** 
+ 749:../MQXLITE/kernel/time_ticks.c ****     _GET_KERNEL_DATA(kernel_data);
+ 1264              		.loc 1 749 0
+ 1265 0004 034B     		ldr	r3, .L94
+ 1266 0006 1C68     		ldr	r4, [r3]
+ 750:../MQXLITE/kernel/time_ticks.c **** 
+ 751:../MQXLITE/kernel/time_ticks.c ****     return kernel_data->HW_TICKS_PER_TICK;
+ 1267              		.loc 1 751 0
+ 1268 0008 A223     		mov	r3, #162
+ 1269 000a 5B00     		lsl	r3, r3, #1
+ 1270 000c E358     		ldr	r3, [r4, r3]
+ 752:../MQXLITE/kernel/time_ticks.c **** 
+ 753:../MQXLITE/kernel/time_ticks.c **** } /* Endbody */
+ 1271              		.loc 1 753 0
+ 1272 000e 181C     		mov	r0, r3
+ 1273 0010 BD46     		mov	sp, r7
+ 1274              		@ sp needed for prologue
+ 1275 0012 90BD     		pop	{r4, r7, pc}
+ 1276              	.L95:
+ 1277              		.align	2
+ 1278              	.L94:
+ 1279 0014 00000000 		.word	_mqx_kernel_data
+ 1280              		.cfi_endproc
+ 1281              	.LFE12:
+ 1283              		.section	.text._time_init_ticks,"ax",%progbits
+ 1284              		.align	2
+ 1285              		.global	_time_init_ticks
+ 1286              		.code	16
+ 1287              		.thumb_func
+ 1289              	_time_init_ticks:
+ 1290              	.LFB13:
+ 754:../MQXLITE/kernel/time_ticks.c **** #endif /* MQX_HAS_HW_TICKS */
+ 755:../MQXLITE/kernel/time_ticks.c **** 
+ 756:../MQXLITE/kernel/time_ticks.c **** /*!
+ 757:../MQXLITE/kernel/time_ticks.c ****  * \brief Initializes a tick time structure with the number of ticks.
+ 758:../MQXLITE/kernel/time_ticks.c ****  *
+ 759:../MQXLITE/kernel/time_ticks.c ****  * \param[in,out] tick_ptr Pointer to the tick time structure to initialize.
+ 760:../MQXLITE/kernel/time_ticks.c ****  * \param[in]     ticks    Number of ticks with which to initialize the structure.
+ 761:../MQXLITE/kernel/time_ticks.c ****  *
+ 762:../MQXLITE/kernel/time_ticks.c ****  * \return MQX_OK
+ 763:../MQXLITE/kernel/time_ticks.c ****  * \return MQX_INVALID_PARAMETER (Tick_ptr is NULL.)
+ 764:../MQXLITE/kernel/time_ticks.c ****  *
+ 765:../MQXLITE/kernel/time_ticks.c ****  * \see _time_ticks_to_xdate
+ 766:../MQXLITE/kernel/time_ticks.c ****  * \see _time_set
+ 767:../MQXLITE/kernel/time_ticks.c ****  * \see _time_set_ticks
+ 768:../MQXLITE/kernel/time_ticks.c ****  * \see MQX_TICK_STRUCT
+ 769:../MQXLITE/kernel/time_ticks.c ****  */
+ 770:../MQXLITE/kernel/time_ticks.c **** _mqx_uint _time_init_ticks
+ 771:../MQXLITE/kernel/time_ticks.c **** (
+ 772:../MQXLITE/kernel/time_ticks.c ****     MQX_TICK_STRUCT_PTR tick_ptr,
+ 773:../MQXLITE/kernel/time_ticks.c ****     _mqx_uint           ticks
+ 774:../MQXLITE/kernel/time_ticks.c **** )
+ 775:../MQXLITE/kernel/time_ticks.c **** { /* Body */
+ 1291              		.loc 1 775 0
+ 1292              		.cfi_startproc
+ 1293 0000 90B5     		push	{r4, r7, lr}
+ 1294              	.LCFI35:
+ 1295              		.cfi_def_cfa_offset 12
+ 1296              		.cfi_offset 4, -12
+ 1297              		.cfi_offset 7, -8
+ 1298              		.cfi_offset 14, -4
+ 1299 0002 83B0     		sub	sp, sp, #12
+ 1300              	.LCFI36:
+ 1301              		.cfi_def_cfa_offset 24
+ 1302 0004 00AF     		add	r7, sp, #0
+ 1303              	.LCFI37:
+ 1304              		.cfi_def_cfa_register 7
+ 1305 0006 7860     		str	r0, [r7, #4]
+ 1306 0008 3960     		str	r1, [r7]
+ 776:../MQXLITE/kernel/time_ticks.c **** 
+ 777:../MQXLITE/kernel/time_ticks.c **** #if MQX_CHECK_ERRORS
+ 778:../MQXLITE/kernel/time_ticks.c ****     if (tick_ptr == NULL) {
+ 1307              		.loc 1 778 0
+ 1308 000a 7A68     		ldr	r2, [r7, #4]
+ 1309 000c 002A     		cmp	r2, #0
+ 1310 000e 01D1     		bne	.L97
+ 779:../MQXLITE/kernel/time_ticks.c ****         return MQX_INVALID_PARAMETER;
+ 1311              		.loc 1 779 0
+ 1312 0010 0C23     		mov	r3, #12
+ 1313 0012 17E0     		b	.L98
+ 1314              	.L97:
+ 780:../MQXLITE/kernel/time_ticks.c ****     } /* Endif */
+ 781:../MQXLITE/kernel/time_ticks.c **** #endif
+ 782:../MQXLITE/kernel/time_ticks.c **** 
+ 783:../MQXLITE/kernel/time_ticks.c ****     if (ticks) {
+ 1315              		.loc 1 783 0
+ 1316 0014 3A68     		ldr	r2, [r7]
+ 1317 0016 002A     		cmp	r2, #0
+ 1318 0018 0FD0     		beq	.L99
+ 784:../MQXLITE/kernel/time_ticks.c ****         tick_ptr->HW_TICKS = 0;
+ 1319              		.loc 1 784 0
+ 1320 001a 7A68     		ldr	r2, [r7, #4]
+ 1321 001c 0021     		mov	r1, #0
+ 1322 001e 9160     		str	r1, [r2, #8]
+ 785:../MQXLITE/kernel/time_ticks.c ****         PSP_ADD_TICKS_TO_TICK_STRUCT(&_mqx_zero_tick_struct, ticks, tick_ptr);
+ 1323              		.loc 1 785 0
+ 1324 0020 0A4A     		ldr	r2, .L101
+ 1325 0022 1168     		ldr	r1, [r2]
+ 1326 0024 5268     		ldr	r2, [r2, #4]
+ 1327 0026 3868     		ldr	r0, [r7]
+ 1328 0028 031C     		mov	r3, r0
+ 1329 002a 0020     		mov	r0, #0
+ 1330 002c 041C     		mov	r4, r0
+ 1331 002e 5B18     		add	r3, r3, r1
+ 1332 0030 5441     		adc	r4, r4, r2
+ 1333 0032 7A68     		ldr	r2, [r7, #4]
+ 1334 0034 1360     		str	r3, [r2]
+ 1335 0036 5460     		str	r4, [r2, #4]
+ 1336 0038 03E0     		b	.L100
+ 1337              	.L99:
+ 786:../MQXLITE/kernel/time_ticks.c ****     }
+ 787:../MQXLITE/kernel/time_ticks.c ****     else {
+ 788:../MQXLITE/kernel/time_ticks.c ****         *tick_ptr = _mqx_zero_tick_struct;
+ 1338              		.loc 1 788 0
+ 1339 003a 7B68     		ldr	r3, [r7, #4]
+ 1340 003c 034A     		ldr	r2, .L101
+ 1341 003e 13CA     		ldmia	r2!, {r0, r1, r4}
+ 1342 0040 13C3     		stmia	r3!, {r0, r1, r4}
+ 1343              	.L100:
+ 789:../MQXLITE/kernel/time_ticks.c ****     } /* Endif */
+ 790:../MQXLITE/kernel/time_ticks.c **** 
+ 791:../MQXLITE/kernel/time_ticks.c ****     return MQX_OK;
+ 1344              		.loc 1 791 0
+ 1345 0042 0023     		mov	r3, #0
+ 1346              	.L98:
+ 792:../MQXLITE/kernel/time_ticks.c **** 
+ 793:../MQXLITE/kernel/time_ticks.c **** } /* Endbody */
+ 1347              		.loc 1 793 0
+ 1348 0044 181C     		mov	r0, r3
+ 1349 0046 BD46     		mov	sp, r7
+ 1350 0048 03B0     		add	sp, sp, #12
+ 1351              		@ sp needed for prologue
+ 1352 004a 90BD     		pop	{r4, r7, pc}
+ 1353              	.L102:
+ 1354              		.align	2
+ 1355              	.L101:
+ 1356 004c 00000000 		.word	_mqx_zero_tick_struct
+ 1357              		.cfi_endproc
+ 1358              	.LFE13:
+ 1360              		.section	.text._time_notify_kernel,"ax",%progbits
+ 1361              		.align	2
+ 1362              		.global	_time_notify_kernel
+ 1363              		.code	16
+ 1364              		.thumb_func
+ 1366              	_time_notify_kernel:
+ 1367              	.LFB14:
+ 794:../MQXLITE/kernel/time_ticks.c **** 
+ 795:../MQXLITE/kernel/time_ticks.c **** #if MQX_HAS_TICK
+ 796:../MQXLITE/kernel/time_ticks.c **** /*!
+ 797:../MQXLITE/kernel/time_ticks.c ****  * \brief The BSP periodic timer ISR calls the function when a periodic timer
+ 798:../MQXLITE/kernel/time_ticks.c ****  * interrupt occurs.
+ 799:../MQXLITE/kernel/time_ticks.c ****  *
+ 800:../MQXLITE/kernel/time_ticks.c ****  * The BSP installs an ISR for the periodic timer interrupt. The ISR calls
+ 801:../MQXLITE/kernel/time_ticks.c ****  * _time_notify_kernel(), which does the following:
+ 802:../MQXLITE/kernel/time_ticks.c ****  * \n - Increments kernel time.
+ 803:../MQXLITE/kernel/time_ticks.c ****  * \n - If the active task is a time slice task whose time slice has expired,
+ 804:../MQXLITE/kernel/time_ticks.c ****  * puts it at the end of the task's ready queue.
+ 805:../MQXLITE/kernel/time_ticks.c ****  * \n - If the timeout has expired for tasks on the timeout queue, puts them in
+ 806:../MQXLITE/kernel/time_ticks.c ****  * their ready queues.
+ 807:../MQXLITE/kernel/time_ticks.c ****  * \n If the BSP does not have periodic timer interrupts, MQX components that use
+ 808:../MQXLITE/kernel/time_ticks.c ****  * time will not operate.
+ 809:../MQXLITE/kernel/time_ticks.c ****  *
+ 810:../MQXLITE/kernel/time_ticks.c ****  * \warning See description.
+ 811:../MQXLITE/kernel/time_ticks.c ****  *
+ 812:../MQXLITE/kernel/time_ticks.c ****  * \see _time_get_elapsed
+ 813:../MQXLITE/kernel/time_ticks.c ****  * \see _time_get_elapsed_ticks
+ 814:../MQXLITE/kernel/time_ticks.c ****  * \see _time_get
+ 815:../MQXLITE/kernel/time_ticks.c ****  * \see _time_get_ticks
+ 816:../MQXLITE/kernel/time_ticks.c ****  * \see _time_set
+ 817:../MQXLITE/kernel/time_ticks.c ****  * \see _time_set_ticks
+ 818:../MQXLITE/kernel/time_ticks.c ****  */
+ 819:../MQXLITE/kernel/time_ticks.c **** void _time_notify_kernel
+ 820:../MQXLITE/kernel/time_ticks.c **** (
+ 821:../MQXLITE/kernel/time_ticks.c ****     void
+ 822:../MQXLITE/kernel/time_ticks.c **** )
+ 823:../MQXLITE/kernel/time_ticks.c **** { /* Body */
+ 1368              		.loc 1 823 0
+ 1369              		.cfi_startproc
+ 1370 0000 F0B5     		push	{r4, r5, r6, r7, lr}
+ 1371              	.LCFI38:
+ 1372              		.cfi_def_cfa_offset 20
+ 1373              		.cfi_offset 4, -20
+ 1374              		.cfi_offset 5, -16
+ 1375              		.cfi_offset 6, -12
+ 1376              		.cfi_offset 7, -8
+ 1377              		.cfi_offset 14, -4
+ 1378 0002 4F46     		mov	r7, r9
+ 1379 0004 4646     		mov	r6, r8
+ 1380 0006 C0B4     		push	{r6, r7}
+ 1381              	.LCFI39:
+ 1382              		.cfi_def_cfa_offset 28
+ 1383              		.cfi_offset 8, -28
+ 1384              		.cfi_offset 9, -24
+ 1385 0008 85B0     		sub	sp, sp, #20
+ 1386              	.LCFI40:
+ 1387              		.cfi_def_cfa_offset 48
+ 1388 000a 00AF     		add	r7, sp, #0
+ 1389              	.LCFI41:
+ 1390              		.cfi_def_cfa_register 7
+ 824:../MQXLITE/kernel/time_ticks.c ****     register KERNEL_DATA_STRUCT_PTR kernel_data;
+ 825:../MQXLITE/kernel/time_ticks.c ****     register TD_STRUCT_PTR td_ptr;
+ 826:../MQXLITE/kernel/time_ticks.c ****     register TD_STRUCT_PTR next_td_ptr;
+ 827:../MQXLITE/kernel/time_ticks.c ****     register _mqx_uint count;
+ 828:../MQXLITE/kernel/time_ticks.c ****     register _mqx_int result;
+ 829:../MQXLITE/kernel/time_ticks.c **** 
+ 830:../MQXLITE/kernel/time_ticks.c ****     _GET_KERNEL_DATA(kernel_data);
+ 1391              		.loc 1 830 0
+ 1392 000c 654B     		ldr	r3, .L124
+ 1393 000e 1D68     		ldr	r5, [r3]
+ 831:../MQXLITE/kernel/time_ticks.c **** 
+ 832:../MQXLITE/kernel/time_ticks.c ****     /*
+ 833:../MQXLITE/kernel/time_ticks.c ****      * Update the current time.
+ 834:../MQXLITE/kernel/time_ticks.c ****      */
+ 835:../MQXLITE/kernel/time_ticks.c ****     PSP_INC_TICKS(&kernel_data->TIME);
+ 1394              		.loc 1 835 0
+ 1395 0010 8822     		mov	r2, #136
+ 1396 0012 5200     		lsl	r2, r2, #1
+ 1397 0014 A818     		add	r0, r5, r2
+ 1398 0016 0168     		ldr	r1, [r0]
+ 1399 0018 4268     		ldr	r2, [r0, #4]
+ 1400 001a 0123     		mov	r3, #1
+ 1401 001c 0024     		mov	r4, #0
+ 1402 001e 5B18     		add	r3, r3, r1
+ 1403 0020 5441     		adc	r4, r4, r2
+ 1404 0022 0360     		str	r3, [r0]
+ 1405 0024 4460     		str	r4, [r0, #4]
+ 836:../MQXLITE/kernel/time_ticks.c **** 
+ 837:../MQXLITE/kernel/time_ticks.c ****     _INT_DISABLE();
+ 1406              		.loc 1 837 0
+ 1407 0026 EB69     		ldr	r3, [r5, #28]
+ 1408 0028 9B6C     		ldr	r3, [r3, #72]
+ 1409 002a 002B     		cmp	r3, #0
+ 1410 002c 00D1     		bne	.L104
+ 1411              		.loc 1 837 0 is_stmt 0 discriminator 1
+ 1412              	@ 837 "../MQXLITE/kernel/time_ticks.c" 1
+ 1413 002e 72B6     		cpsid i
+ 1414              	@ 0 "" 2
+ 1415              		.code	16
+ 1416              	.L104:
+ 1417              		.loc 1 837 0 discriminator 2
+ 1418 0030 EB69     		ldr	r3, [r5, #28]
+ 1419 0032 9A6C     		ldr	r2, [r3, #72]
+ 1420 0034 0132     		add	r2, r2, #1
+ 1421 0036 9A64     		str	r2, [r3, #72]
+ 838:../MQXLITE/kernel/time_ticks.c **** 
+ 839:../MQXLITE/kernel/time_ticks.c ****     if (kernel_data->GET_HWTICKS) {
+ 1422              		.loc 1 839 0 is_stmt 1 discriminator 2
+ 1423 0038 A423     		mov	r3, #164
+ 1424 003a 5B00     		lsl	r3, r3, #1
+ 1425 003c EB58     		ldr	r3, [r5, r3]
+ 1426 003e 002B     		cmp	r3, #0
+ 1427 0040 0BD0     		beq	.L105
+ 840:../MQXLITE/kernel/time_ticks.c ****         /* The hardware clock may have counted passed it's reference
+ 841:../MQXLITE/kernel/time_ticks.c ****          * and have an interrupt pending.  Thus, HW_TICKS may exceed
+ 842:../MQXLITE/kernel/time_ticks.c ****          * kernel_data->HW_TICKS_PER_TICK and this tick_ptr may need
+ 843:../MQXLITE/kernel/time_ticks.c ****          * normalizing.  This is done in a moment.
+ 844:../MQXLITE/kernel/time_ticks.c ****          */
+ 845:../MQXLITE/kernel/time_ticks.c ****         kernel_data->TIME.HW_TICKS = (*kernel_data->GET_HWTICKS)(kernel_data->GET_HWTICKS_PARAM);
+ 1428              		.loc 1 845 0
+ 1429 0042 A423     		mov	r3, #164
+ 1430 0044 5B00     		lsl	r3, r3, #1
+ 1431 0046 EB58     		ldr	r3, [r5, r3]
+ 1432 0048 A622     		mov	r2, #166
+ 1433 004a 5200     		lsl	r2, r2, #1
+ 1434 004c AA58     		ldr	r2, [r5, r2]
+ 1435 004e 101C     		mov	r0, r2
+ 1436 0050 9847     		blx	r3
+ 1437 0052 021C     		mov	r2, r0
+ 1438 0054 8C23     		mov	r3, #140
+ 1439 0056 5B00     		lsl	r3, r3, #1
+ 1440 0058 EA50     		str	r2, [r5, r3]
+ 1441              	.L105:
+ 846:../MQXLITE/kernel/time_ticks.c ****     } /* Endif */
+ 847:../MQXLITE/kernel/time_ticks.c **** 
+ 848:../MQXLITE/kernel/time_ticks.c ****     /* The tick_ptr->HW_TICKS value might exceed the
+ 849:../MQXLITE/kernel/time_ticks.c ****      * kernel_data->HW_TICKS_PER_TICK and need to be
+ 850:../MQXLITE/kernel/time_ticks.c ****      * normalized for the PSP.
+ 851:../MQXLITE/kernel/time_ticks.c ****      */
+ 852:../MQXLITE/kernel/time_ticks.c ****     PSP_NORMALIZE_TICKS(&kernel_data->TIME);
+ 1442              		.loc 1 852 0
+ 1443 005a 8822     		mov	r2, #136
+ 1444 005c 5200     		lsl	r2, r2, #1
+ 1445 005e AB18     		add	r3, r5, r2
+ 1446 0060 181C     		mov	r0, r3
+ 1447 0062 FFF7FEFF 		bl	_psp_normalize_ticks
+ 853:../MQXLITE/kernel/time_ticks.c **** 
+ 854:../MQXLITE/kernel/time_ticks.c ****     /*
+ 855:../MQXLITE/kernel/time_ticks.c ****      * Check for tasks on the timeout queue, and wake the appropriate
+ 856:../MQXLITE/kernel/time_ticks.c ****      * ones up.  The timeout queue is a time-priority queue.
+ 857:../MQXLITE/kernel/time_ticks.c ****      */
+ 858:../MQXLITE/kernel/time_ticks.c ****     count = _QUEUE_GET_SIZE(&kernel_data->TIMEOUT_QUEUE);
+ 1448              		.loc 1 858 0
+ 1449 0066 9422     		mov	r2, #148
+ 1450 0068 5200     		lsl	r2, r2, #1
+ 1451 006a AB18     		add	r3, r5, r2
+ 1452 006c 1B89     		ldrh	r3, [r3, #8]
+ 1453 006e 1E1C     		mov	r6, r3
+ 859:../MQXLITE/kernel/time_ticks.c ****     if (count) {
+ 1454              		.loc 1 859 0
+ 1455 0070 00D1     		bne	.LCB1106
+ 1456 0072 76E0     		b	.L106	@long jump
+ 1457              	.LCB1106:
+ 860:../MQXLITE/kernel/time_ticks.c ****         td_ptr = (TD_STRUCT_PTR)((pointer) kernel_data->TIMEOUT_QUEUE.NEXT);
+ 1458              		.loc 1 860 0
+ 1459 0074 9423     		mov	r3, #148
+ 1460 0076 5B00     		lsl	r3, r3, #1
+ 1461 0078 EC58     		ldr	r4, [r5, r3]
+ 861:../MQXLITE/kernel/time_ticks.c ****         ++count;
+ 1462              		.loc 1 861 0
+ 1463 007a 0136     		add	r6, r6, #1
+ 862:../MQXLITE/kernel/time_ticks.c ****         while (--count) {
+ 1464              		.loc 1 862 0
+ 1465 007c 6CE0     		b	.L107
+ 1466              	.L117:
+ 863:../MQXLITE/kernel/time_ticks.c ****             next_td_ptr = td_ptr->TD_NEXT;
+ 1467              		.loc 1 863 0
+ 1468 007e 2368     		ldr	r3, [r4]
+ 1469 0080 9846     		mov	r8, r3
+ 864:../MQXLITE/kernel/time_ticks.c ****             result = PSP_CMP_TICKS(&kernel_data->TIME, &td_ptr->TIMEOUT);
+ 1470              		.loc 1 864 0
+ 1471 0082 8822     		mov	r2, #136
+ 1472 0084 5200     		lsl	r2, r2, #1
+ 1473 0086 AB18     		add	r3, r5, r2
+ 1474 0088 1868     		ldr	r0, [r3]
+ 1475 008a 5968     		ldr	r1, [r3, #4]
+ 1476 008c 231C     		mov	r3, r4
+ 1477 008e 3833     		add	r3, r3, #56
+ 1478 0090 1A68     		ldr	r2, [r3]
+ 1479 0092 5B68     		ldr	r3, [r3, #4]
+ 1480 0094 9942     		cmp	r1, r3
+ 1481 0096 15D8     		bhi	.L108
+ 1482 0098 01D1     		bne	.L121
+ 1483 009a 9042     		cmp	r0, r2
+ 1484 009c 12D8     		bhi	.L108
+ 1485              	.L121:
+ 1486              		.loc 1 864 0 is_stmt 0 discriminator 1
+ 1487 009e 8822     		mov	r2, #136
+ 1488 00a0 5200     		lsl	r2, r2, #1
+ 1489 00a2 AB18     		add	r3, r5, r2
+ 1490 00a4 1A68     		ldr	r2, [r3]
+ 1491 00a6 5B68     		ldr	r3, [r3, #4]
+ 1492 00a8 211C     		mov	r1, r4
+ 1493 00aa 3831     		add	r1, r1, #56
+ 1494 00ac 0868     		ldr	r0, [r1]
+ 1495 00ae 4968     		ldr	r1, [r1, #4]
+ 1496 00b0 9942     		cmp	r1, r3
+ 1497 00b2 02D8     		bhi	.L122
+ 1498 00b4 04D1     		bne	.L110
+ 1499 00b6 9042     		cmp	r0, r2
+ 1500 00b8 02D9     		bls	.L110
+ 1501              	.L122:
+ 1502              		.loc 1 864 0 discriminator 3
+ 1503 00ba 0123     		mov	r3, #1
+ 1504 00bc 5B42     		neg	r3, r3
+ 1505 00be 00E0     		b	.L112
+ 1506              	.L110:
+ 1507              		.loc 1 864 0 discriminator 4
+ 1508 00c0 0023     		mov	r3, #0
+ 1509              	.L112:
+ 1510 00c2 00E0     		b	.L113
+ 1511              	.L108:
+ 1512              		.loc 1 864 0 discriminator 2
+ 1513 00c4 0123     		mov	r3, #1
+ 1514              	.L113:
+ 1515              		.loc 1 864 0 discriminator 6
+ 1516 00c6 9946     		mov	r9, r3
+ 865:../MQXLITE/kernel/time_ticks.c ****             if (result >= 0) {
+ 1517              		.loc 1 865 0 is_stmt 1 discriminator 6
+ 1518 00c8 4B46     		mov	r3, r9
+ 1519 00ca 002B     		cmp	r3, #0
+ 1520 00cc 48DB     		blt	.L123
+ 866:../MQXLITE/kernel/time_ticks.c ****                 --kernel_data->TIMEOUT_QUEUE.SIZE;
+ 1521              		.loc 1 866 0
+ 1522 00ce 9823     		mov	r3, #152
+ 1523 00d0 5B00     		lsl	r3, r3, #1
+ 1524 00d2 EB5A     		ldrh	r3, [r5, r3]
+ 1525 00d4 013B     		sub	r3, r3, #1
+ 1526 00d6 9AB2     		uxth	r2, r3
+ 1527 00d8 9823     		mov	r3, #152
+ 1528 00da 5B00     		lsl	r3, r3, #1
+ 1529 00dc EA52     		strh	r2, [r5, r3]
+ 1530              	.LBB6:
+ 867:../MQXLITE/kernel/time_ticks.c ****                 _QUEUE_UNLINK(td_ptr);
+ 1531              		.loc 1 867 0
+ 1532 00de 6368     		ldr	r3, [r4, #4]
+ 1533 00e0 FB60     		str	r3, [r7, #12]
+ 1534 00e2 2368     		ldr	r3, [r4]
+ 1535 00e4 BB60     		str	r3, [r7, #8]
+ 1536 00e6 FB68     		ldr	r3, [r7, #12]
+ 1537 00e8 BA68     		ldr	r2, [r7, #8]
+ 1538 00ea 1A60     		str	r2, [r3]
+ 1539 00ec BB68     		ldr	r3, [r7, #8]
+ 1540 00ee FA68     		ldr	r2, [r7, #12]
+ 1541 00f0 5A60     		str	r2, [r3, #4]
+ 1542              	.LBE6:
+ 868:../MQXLITE/kernel/time_ticks.c ****                 td_ptr->STATE &= ~IS_ON_TIMEOUT_Q;
+ 1543              		.loc 1 868 0
+ 1544 00f2 A268     		ldr	r2, [r4, #8]
+ 1545 00f4 2C4B     		ldr	r3, .L124+4
+ 1546 00f6 1340     		and	r3, r2
+ 1547 00f8 A360     		str	r3, [r4, #8]
+ 869:../MQXLITE/kernel/time_ticks.c ****                 if (td_ptr->STATE & TD_IS_ON_AUX_QUEUE) {
+ 1548              		.loc 1 869 0
+ 1549 00fa A268     		ldr	r2, [r4, #8]
+ 1550 00fc 8023     		mov	r3, #128
+ 1551 00fe DB00     		lsl	r3, r3, #3
+ 1552 0100 1340     		and	r3, r2
+ 1553 0102 16D0     		beq	.L115
+ 870:../MQXLITE/kernel/time_ticks.c ****                     td_ptr->STATE &= ~TD_IS_ON_AUX_QUEUE;
+ 1554              		.loc 1 870 0
+ 1555 0104 A268     		ldr	r2, [r4, #8]
+ 1556 0106 294B     		ldr	r3, .L124+8
+ 1557 0108 1340     		and	r3, r2
+ 1558 010a A360     		str	r3, [r4, #8]
+ 1559              	.LBB7:
+ 871:../MQXLITE/kernel/time_ticks.c ****                     _QUEUE_REMOVE(td_ptr->INFO, &td_ptr->AUX_QUEUE);
+ 1560              		.loc 1 871 0
+ 1561 010c 231C     		mov	r3, r4
+ 1562 010e 3033     		add	r3, r3, #48
+ 1563 0110 5B68     		ldr	r3, [r3, #4]
+ 1564 0112 7B60     		str	r3, [r7, #4]
+ 1565 0114 231C     		mov	r3, r4
+ 1566 0116 3033     		add	r3, r3, #48
+ 1567 0118 1B68     		ldr	r3, [r3]
+ 1568 011a 3B60     		str	r3, [r7]
+ 1569 011c 7B68     		ldr	r3, [r7, #4]
+ 1570 011e 3A68     		ldr	r2, [r7]
+ 1571 0120 1A60     		str	r2, [r3]
+ 1572 0122 3B68     		ldr	r3, [r7]
+ 1573 0124 7A68     		ldr	r2, [r7, #4]
+ 1574 0126 5A60     		str	r2, [r3, #4]
+ 1575              	.LBE7:
+ 1576 0128 E36A     		ldr	r3, [r4, #44]
+ 1577 012a 1A89     		ldrh	r2, [r3, #8]
+ 1578 012c 013A     		sub	r2, r2, #1
+ 1579 012e 92B2     		uxth	r2, r2
+ 1580 0130 1A81     		strh	r2, [r3, #8]
+ 1581              	.L115:
+ 872:../MQXLITE/kernel/time_ticks.c ****                 } /* Endif */
+ 873:../MQXLITE/kernel/time_ticks.c ****                 _TASK_READY(td_ptr, kernel_data);
+ 1582              		.loc 1 873 0
+ 1583 0132 E269     		ldr	r2, [r4, #28]
+ 1584 0134 6B6A     		ldr	r3, [r5, #36]
+ 1585 0136 9A42     		cmp	r2, r3
+ 1586 0138 01D9     		bls	.L116
+ 1587              		.loc 1 873 0 is_stmt 0 discriminator 1
+ 1588 013a E369     		ldr	r3, [r4, #28]
+ 1589 013c 6B62     		str	r3, [r5, #36]
+ 1590              	.L116:
+ 1591              		.loc 1 873 0 discriminator 2
+ 1592 013e 0223     		mov	r3, #2
+ 1593 0140 A360     		str	r3, [r4, #8]
+ 1594 0142 E369     		ldr	r3, [r4, #28]
+ 1595 0144 5B68     		ldr	r3, [r3, #4]
+ 1596 0146 6360     		str	r3, [r4, #4]
+ 1597 0148 6368     		ldr	r3, [r4, #4]
+ 1598 014a 1B68     		ldr	r3, [r3]
+ 1599 014c 2360     		str	r3, [r4]
+ 1600 014e 6368     		ldr	r3, [r4, #4]
+ 1601 0150 1C60     		str	r4, [r3]
+ 1602 0152 E369     		ldr	r3, [r4, #28]
+ 1603 0154 5C60     		str	r4, [r3, #4]
+ 874:../MQXLITE/kernel/time_ticks.c ****             }
+ 875:../MQXLITE/kernel/time_ticks.c ****             else {
+ 876:../MQXLITE/kernel/time_ticks.c ****                 break; /* No more to do */
+ 877:../MQXLITE/kernel/time_ticks.c ****             } /* Endif */
+ 878:../MQXLITE/kernel/time_ticks.c ****             td_ptr = next_td_ptr;
+ 1604              		.loc 1 878 0 is_stmt 1 discriminator 2
+ 1605 0156 4446     		mov	r4, r8
+ 1606              	.L107:
+ 862:../MQXLITE/kernel/time_ticks.c ****         while (--count) {
+ 1607              		.loc 1 862 0 discriminator 1
+ 1608 0158 013E     		sub	r6, r6, #1
+ 1609 015a 002E     		cmp	r6, #0
+ 1610 015c 8FD1     		bne	.L117
+ 1611 015e 00E0     		b	.L106
+ 1612              	.L123:
+ 876:../MQXLITE/kernel/time_ticks.c ****                 break; /* No more to do */
+ 1613              		.loc 1 876 0
+ 1614 0160 C046     		mov	r8, r8
+ 1615              	.L106:
+ 879:../MQXLITE/kernel/time_ticks.c ****         } /* Endwhile */
+ 880:../MQXLITE/kernel/time_ticks.c ****     } /* Endif */
+ 881:../MQXLITE/kernel/time_ticks.c **** 
+ 882:../MQXLITE/kernel/time_ticks.c **** #if MQX_HAS_TIME_SLICE
+ 883:../MQXLITE/kernel/time_ticks.c ****     /*
+ 884:../MQXLITE/kernel/time_ticks.c ****      * Check if the currently running task is a time slice task
+ 885:../MQXLITE/kernel/time_ticks.c ****      * and if its time has expired, put it at the end of its queue
+ 886:../MQXLITE/kernel/time_ticks.c ****      */
+ 887:../MQXLITE/kernel/time_ticks.c ****     td_ptr = kernel_data->ACTIVE_PTR;
+ 888:../MQXLITE/kernel/time_ticks.c ****     if ( td_ptr->FLAGS & MQX_TIME_SLICE_TASK ) {
+ 889:../MQXLITE/kernel/time_ticks.c ****         PSP_INC_TICKS(&td_ptr->CURRENT_TIME_SLICE);
+ 890:../MQXLITE/kernel/time_ticks.c ****         if (! (td_ptr->FLAGS & TASK_PREEMPTION_DISABLED) ) {
+ 891:../MQXLITE/kernel/time_ticks.c ****             result = PSP_CMP_TICKS(&td_ptr->CURRENT_TIME_SLICE, &td_ptr->TIME_SLICE);
+ 892:../MQXLITE/kernel/time_ticks.c ****             if ( result >= 0 ) {
+ 893:../MQXLITE/kernel/time_ticks.c ****                 _QUEUE_UNLINK(td_ptr);
+ 894:../MQXLITE/kernel/time_ticks.c ****                 _TASK_READY(td_ptr,kernel_data);
+ 895:../MQXLITE/kernel/time_ticks.c ****             } /* Endif */
+ 896:../MQXLITE/kernel/time_ticks.c ****         } /* Endif */
+ 897:../MQXLITE/kernel/time_ticks.c ****     } /* Endif */
+ 898:../MQXLITE/kernel/time_ticks.c **** #endif
+ 899:../MQXLITE/kernel/time_ticks.c **** 
+ 900:../MQXLITE/kernel/time_ticks.c ****     _INT_ENABLE();
+ 1616              		.loc 1 900 0
+ 1617 0162 EB69     		ldr	r3, [r5, #28]
+ 1618 0164 9B6C     		ldr	r3, [r3, #72]
+ 1619 0166 002B     		cmp	r3, #0
+ 1620 0168 0CD0     		beq	.L118
+ 1621              		.loc 1 900 0 is_stmt 0 discriminator 1
+ 1622 016a EB69     		ldr	r3, [r5, #28]
+ 1623 016c 9A6C     		ldr	r2, [r3, #72]
+ 1624 016e 013A     		sub	r2, r2, #1
+ 1625 0170 9A64     		str	r2, [r3, #72]
+ 1626 0172 9B6C     		ldr	r3, [r3, #72]
+ 1627 0174 002B     		cmp	r3, #0
+ 1628 0176 05D1     		bne	.L118
+ 1629              		.loc 1 900 0 discriminator 2
+ 1630 0178 2B8B     		ldrh	r3, [r5, #24]
+ 1631 017a 002B     		cmp	r3, #0
+ 1632 017c 01D0     		beq	.L119
+ 1633              		.loc 1 900 0 discriminator 3
+ 1634              	@ 900 "../MQXLITE/kernel/time_ticks.c" 1
+ 1635 017e 62B6     		cpsie i
+ 1636              	@ 0 "" 2
+ 1637              		.code	16
+ 1638 0180 00E0     		b	.L118
+ 1639              	.L119:
+ 1640              		.loc 1 900 0 discriminator 4
+ 1641              	@ 900 "../MQXLITE/kernel/time_ticks.c" 1
+ 1642 0182 62B6     		cpsie i
+ 1643              	@ 0 "" 2
+ 1644              		.code	16
+ 1645              	.L118:
+ 901:../MQXLITE/kernel/time_ticks.c **** #if MQX_USE_TIMER
+ 902:../MQXLITE/kernel/time_ticks.c ****     /* If the timer component needs servicing, call its ISR function */
+ 903:../MQXLITE/kernel/time_ticks.c ****     if (kernel_data->TIMER_COMPONENT_ISR != NULL) {
+ 1646              		.loc 1 903 0 is_stmt 1
+ 1647 0184 8F23     		mov	r3, #143
+ 1648 0186 9B00     		lsl	r3, r3, #2
+ 1649 0188 EB58     		ldr	r3, [r5, r3]
+ 1650 018a 002B     		cmp	r3, #0
+ 1651 018c 03D0     		beq	.L103
+ 904:../MQXLITE/kernel/time_ticks.c ****         (*kernel_data->TIMER_COMPONENT_ISR)();
+ 1652              		.loc 1 904 0
+ 1653 018e 8F23     		mov	r3, #143
+ 1654 0190 9B00     		lsl	r3, r3, #2
+ 1655 0192 EB58     		ldr	r3, [r5, r3]
+ 1656 0194 9847     		blx	r3
+ 1657              	.L103:
+ 905:../MQXLITE/kernel/time_ticks.c ****     }/* Endif */
+ 906:../MQXLITE/kernel/time_ticks.c **** #endif
+ 907:../MQXLITE/kernel/time_ticks.c **** 
+ 908:../MQXLITE/kernel/time_ticks.c **** #if MQX_USE_LWTIMER
+ 909:../MQXLITE/kernel/time_ticks.c ****     /* If the lwtimer needs servicing, call its ISR function */
+ 910:../MQXLITE/kernel/time_ticks.c ****     if (kernel_data->LWTIMER_ISR != NULL) {
+ 911:../MQXLITE/kernel/time_ticks.c ****         (*kernel_data->LWTIMER_ISR)();
+ 912:../MQXLITE/kernel/time_ticks.c ****     }/* Endif */
+ 913:../MQXLITE/kernel/time_ticks.c **** #endif
+ 914:../MQXLITE/kernel/time_ticks.c **** 
+ 915:../MQXLITE/kernel/time_ticks.c **** } /* Endbody */
+ 1658              		.loc 1 915 0
+ 1659 0196 BD46     		mov	sp, r7
+ 1660 0198 05B0     		add	sp, sp, #20
+ 1661              		@ sp needed for prologue
+ 1662 019a 0CBC     		pop	{r2, r3}
+ 1663 019c 9046     		mov	r8, r2
+ 1664 019e 9946     		mov	r9, r3
+ 1665 01a0 F0BD     		pop	{r4, r5, r6, r7, pc}
+ 1666              	.L125:
+ 1667 01a2 C046     		.align	2
+ 1668              	.L124:
+ 1669 01a4 00000000 		.word	_mqx_kernel_data
+ 1670 01a8 FFFEFFFF 		.word	-257
+ 1671 01ac FFFBFFFF 		.word	-1025
+ 1672              		.cfi_endproc
+ 1673              	.LFE14:
+ 1675              		.section	.text._time_set_ticks,"ax",%progbits
+ 1676              		.align	2
+ 1677              		.global	_time_set_ticks
+ 1678              		.code	16
+ 1679              		.thumb_func
+ 1681              	_time_set_ticks:
+ 1682              	.LFB15:
+ 916:../MQXLITE/kernel/time_ticks.c **** 
+ 917:../MQXLITE/kernel/time_ticks.c **** #endif /* MQX_HAS_TICK */
+ 918:../MQXLITE/kernel/time_ticks.c **** 
+ 919:../MQXLITE/kernel/time_ticks.c **** #if MQX_HAS_TICK
+ 920:../MQXLITE/kernel/time_ticks.c **** /*!
+ 921:../MQXLITE/kernel/time_ticks.c ****  * \brief Set the absolute time in tick time.
+ 922:../MQXLITE/kernel/time_ticks.c ****  *
+ 923:../MQXLITE/kernel/time_ticks.c ****  * The function affects _time_get_ticks(), but does not affect _time_get_elapsed_ticks().
+ 924:../MQXLITE/kernel/time_ticks.c ****  *
+ 925:../MQXLITE/kernel/time_ticks.c ****  * \param[in] ticks Pointer to the structure that contains the new time in tick time.
+ 926:../MQXLITE/kernel/time_ticks.c ****  *
+ 927:../MQXLITE/kernel/time_ticks.c ****  * \see _time_set
+ 928:../MQXLITE/kernel/time_ticks.c ****  * \see _time_get
+ 929:../MQXLITE/kernel/time_ticks.c ****  * \see _time_get_ticks
+ 930:../MQXLITE/kernel/time_ticks.c ****  * \see _time_get_elapsed
+ 931:../MQXLITE/kernel/time_ticks.c ****  * \see _time_get_elapsed_ticks
+ 932:../MQXLITE/kernel/time_ticks.c ****  * \see _time_to_date
+ 933:../MQXLITE/kernel/time_ticks.c ****  * \see _time_init_ticks
+ 934:../MQXLITE/kernel/time_ticks.c ****  * \see _time_to_ticks
+ 935:../MQXLITE/kernel/time_ticks.c ****  * \see _time_from_date
+ 936:../MQXLITE/kernel/time_ticks.c ****  * \see MQX_TICK_STRUCT
+ 937:../MQXLITE/kernel/time_ticks.c ****  */
+ 938:../MQXLITE/kernel/time_ticks.c **** void _time_set_ticks
+ 939:../MQXLITE/kernel/time_ticks.c **** (
+ 940:../MQXLITE/kernel/time_ticks.c ****     register MQX_TICK_STRUCT_PTR ticks
+ 941:../MQXLITE/kernel/time_ticks.c **** )
+ 942:../MQXLITE/kernel/time_ticks.c **** { /* Body */
+ 1683              		.loc 1 942 0
+ 1684              		.cfi_startproc
+ 1685 0000 98B5     		push	{r3, r4, r7, lr}
+ 1686              	.LCFI42:
+ 1687              		.cfi_def_cfa_offset 16
+ 1688              		.cfi_offset 3, -16
+ 1689              		.cfi_offset 4, -12
+ 1690              		.cfi_offset 7, -8
+ 1691              		.cfi_offset 14, -4
+ 1692 0002 00AF     		add	r7, sp, #0
+ 1693              	.LCFI43:
+ 1694              		.cfi_def_cfa_register 7
+ 1695 0004 011C     		mov	r1, r0
+ 943:../MQXLITE/kernel/time_ticks.c ****     register KERNEL_DATA_STRUCT_PTR kernel_data;
+ 944:../MQXLITE/kernel/time_ticks.c **** 
+ 945:../MQXLITE/kernel/time_ticks.c ****     _GET_KERNEL_DATA(kernel_data);
+ 1696              		.loc 1 945 0
+ 1697 0006 144B     		ldr	r3, .L130
+ 1698 0008 1C68     		ldr	r4, [r3]
+ 946:../MQXLITE/kernel/time_ticks.c **** 
+ 947:../MQXLITE/kernel/time_ticks.c ****     _KLOGE2(KLOG_time_set_ticks, ticks);
+ 948:../MQXLITE/kernel/time_ticks.c **** 
+ 949:../MQXLITE/kernel/time_ticks.c ****     _INT_DISABLE();
+ 1699              		.loc 1 949 0
+ 1700 000a E369     		ldr	r3, [r4, #28]
+ 1701 000c 9B6C     		ldr	r3, [r3, #72]
+ 1702 000e 002B     		cmp	r3, #0
+ 1703 0010 00D1     		bne	.L127
+ 1704              		.loc 1 949 0 is_stmt 0 discriminator 1
+ 1705              	@ 949 "../MQXLITE/kernel/time_ticks.c" 1
+ 1706 0012 72B6     		cpsid i
+ 1707              	@ 0 "" 2
+ 1708              		.code	16
+ 1709              	.L127:
+ 1710              		.loc 1 949 0 discriminator 2
+ 1711 0014 E369     		ldr	r3, [r4, #28]
+ 1712 0016 9A6C     		ldr	r2, [r3, #72]
+ 1713 0018 0132     		add	r2, r2, #1
+ 1714 001a 9A64     		str	r2, [r3, #72]
+ 950:../MQXLITE/kernel/time_ticks.c **** 
+ 951:../MQXLITE/kernel/time_ticks.c ****     PSP_SUB_TICKS(ticks, &kernel_data->TIME, &kernel_data->TIME_OFFSET);
+ 1715              		.loc 1 951 0 is_stmt 1 discriminator 2
+ 1716 001c 8820     		mov	r0, #136
+ 1717 001e 4000     		lsl	r0, r0, #1
+ 1718 0020 2218     		add	r2, r4, r0
+ 1719 0022 8E20     		mov	r0, #142
+ 1720 0024 4000     		lsl	r0, r0, #1
+ 1721 0026 2318     		add	r3, r4, r0
+ 1722 0028 081C     		mov	r0, r1
+ 1723 002a 111C     		mov	r1, r2
+ 1724 002c 1A1C     		mov	r2, r3
+ 1725 002e FFF7FEFF 		bl	_psp_subtract_ticks
+ 952:../MQXLITE/kernel/time_ticks.c **** 
+ 953:../MQXLITE/kernel/time_ticks.c ****     _INT_ENABLE();
+ 1726              		.loc 1 953 0 discriminator 2
+ 1727 0032 E369     		ldr	r3, [r4, #28]
+ 1728 0034 9B6C     		ldr	r3, [r3, #72]
+ 1729 0036 002B     		cmp	r3, #0
+ 1730 0038 0CD0     		beq	.L126
+ 1731              		.loc 1 953 0 is_stmt 0 discriminator 1
+ 1732 003a E369     		ldr	r3, [r4, #28]
+ 1733 003c 9A6C     		ldr	r2, [r3, #72]
+ 1734 003e 013A     		sub	r2, r2, #1
+ 1735 0040 9A64     		str	r2, [r3, #72]
+ 1736 0042 9B6C     		ldr	r3, [r3, #72]
+ 1737 0044 002B     		cmp	r3, #0
+ 1738 0046 05D1     		bne	.L126
+ 1739              		.loc 1 953 0 discriminator 2
+ 1740 0048 238B     		ldrh	r3, [r4, #24]
+ 1741 004a 002B     		cmp	r3, #0
+ 1742 004c 01D0     		beq	.L129
+ 1743              		.loc 1 953 0 discriminator 3
+ 1744              	@ 953 "../MQXLITE/kernel/time_ticks.c" 1
+ 1745 004e 62B6     		cpsie i
+ 1746              	@ 0 "" 2
+ 1747              		.code	16
+ 1748 0050 00E0     		b	.L126
+ 1749              	.L129:
+ 1750              		.loc 1 953 0 discriminator 4
+ 1751              	@ 953 "../MQXLITE/kernel/time_ticks.c" 1
+ 1752 0052 62B6     		cpsie i
+ 1753              	@ 0 "" 2
+ 1754              		.code	16
+ 1755              	.L126:
+ 954:../MQXLITE/kernel/time_ticks.c **** 
+ 955:../MQXLITE/kernel/time_ticks.c ****     _KLOGX1(KLOG_time_set_ticks);
+ 956:../MQXLITE/kernel/time_ticks.c **** 
+ 957:../MQXLITE/kernel/time_ticks.c **** } /* Endbody */
+ 1756              		.loc 1 957 0 is_stmt 1
+ 1757 0054 BD46     		mov	sp, r7
+ 1758              		@ sp needed for prologue
+ 1759 0056 98BD     		pop	{r3, r4, r7, pc}
+ 1760              	.L131:
+ 1761              		.align	2
+ 1762              	.L130:
+ 1763 0058 00000000 		.word	_mqx_kernel_data
+ 1764              		.cfi_endproc
+ 1765              	.LFE15:
+ 1767              		.section	.text._time_set_timer_vector,"ax",%progbits
+ 1768              		.align	2
+ 1769              		.global	_time_set_timer_vector
+ 1770              		.code	16
+ 1771              		.thumb_func
+ 1773              	_time_set_timer_vector:
+ 1774              	.LFB16:
+ 958:../MQXLITE/kernel/time_ticks.c **** #endif /* MQX_HAS_TICK */
+ 959:../MQXLITE/kernel/time_ticks.c **** 
+ 960:../MQXLITE/kernel/time_ticks.c **** #if MQX_HAS_TICK
+ 961:../MQXLITE/kernel/time_ticks.c **** /*!
+ 962:../MQXLITE/kernel/time_ticks.c ****  * \brief Sets the periodic timer interrupt vector number that MQX uses.
+ 963:../MQXLITE/kernel/time_ticks.c ****  *
+ 964:../MQXLITE/kernel/time_ticks.c ****  * The BSP should call the function during initialization.
+ 965:../MQXLITE/kernel/time_ticks.c ****  *
+ 966:../MQXLITE/kernel/time_ticks.c ****  * \param[in] vector Periodic timer interrupt vector to use.
+ 967:../MQXLITE/kernel/time_ticks.c ****  *
+ 968:../MQXLITE/kernel/time_ticks.c ****  * \see _time_get
+ 969:../MQXLITE/kernel/time_ticks.c ****  * \see _time_get_ticks
+ 970:../MQXLITE/kernel/time_ticks.c ****  * \see _time_get_resolution
+ 971:../MQXLITE/kernel/time_ticks.c ****  * \see _time_set_resolution
+ 972:../MQXLITE/kernel/time_ticks.c ****  */
+ 973:../MQXLITE/kernel/time_ticks.c **** void _time_set_timer_vector
+ 974:../MQXLITE/kernel/time_ticks.c **** (
+ 975:../MQXLITE/kernel/time_ticks.c ****     _mqx_uint vector
+ 976:../MQXLITE/kernel/time_ticks.c **** )
+ 977:../MQXLITE/kernel/time_ticks.c **** { /* Body */
+ 1775              		.loc 1 977 0
+ 1776              		.cfi_startproc
+ 1777 0000 90B5     		push	{r4, r7, lr}
+ 1778              	.LCFI44:
+ 1779              		.cfi_def_cfa_offset 12
+ 1780              		.cfi_offset 4, -12
+ 1781              		.cfi_offset 7, -8
+ 1782              		.cfi_offset 14, -4
+ 1783 0002 83B0     		sub	sp, sp, #12
+ 1784              	.LCFI45:
+ 1785              		.cfi_def_cfa_offset 24
+ 1786 0004 00AF     		add	r7, sp, #0
+ 1787              	.LCFI46:
+ 1788              		.cfi_def_cfa_register 7
+ 1789 0006 7860     		str	r0, [r7, #4]
+ 978:../MQXLITE/kernel/time_ticks.c ****     register KERNEL_DATA_STRUCT_PTR kernel_data;
+ 979:../MQXLITE/kernel/time_ticks.c **** 
+ 980:../MQXLITE/kernel/time_ticks.c ****     _GET_KERNEL_DATA(kernel_data);
+ 1790              		.loc 1 980 0
+ 1791 0008 044B     		ldr	r3, .L133
+ 1792 000a 1C68     		ldr	r4, [r3]
+ 981:../MQXLITE/kernel/time_ticks.c ****     kernel_data->SYSTEM_CLOCK_INT_NUMBER = vector;
+ 1793              		.loc 1 981 0
+ 1794 000c 9A23     		mov	r3, #154
+ 1795 000e 5B00     		lsl	r3, r3, #1
+ 1796 0010 7A68     		ldr	r2, [r7, #4]
+ 1797 0012 E250     		str	r2, [r4, r3]
+ 982:../MQXLITE/kernel/time_ticks.c **** 
+ 983:../MQXLITE/kernel/time_ticks.c **** } /* Endbody */
+ 1798              		.loc 1 983 0
+ 1799 0014 BD46     		mov	sp, r7
+ 1800 0016 03B0     		add	sp, sp, #12
+ 1801              		@ sp needed for prologue
+ 1802 0018 90BD     		pop	{r4, r7, pc}
+ 1803              	.L134:
+ 1804 001a C046     		.align	2
+ 1805              	.L133:
+ 1806 001c 00000000 		.word	_mqx_kernel_data
+ 1807              		.cfi_endproc
+ 1808              	.LFE16:
+ 1810              		.section	.text._time_set_hwtick_function,"ax",%progbits
+ 1811              		.align	2
+ 1812              		.global	_time_set_hwtick_function
+ 1813              		.code	16
+ 1814              		.thumb_func
+ 1816              	_time_set_hwtick_function:
+ 1817              	.LFB17:
+ 984:../MQXLITE/kernel/time_ticks.c **** #endif /* MQX_HAS_TICK */
+ 985:../MQXLITE/kernel/time_ticks.c **** 
+ 986:../MQXLITE/kernel/time_ticks.c **** #if MQX_HAS_HW_TICKS
+ 987:../MQXLITE/kernel/time_ticks.c **** /*!
+ 988:../MQXLITE/kernel/time_ticks.c ****  * \brief Set the fields in kernel data to get the hardware ticks.
+ 989:../MQXLITE/kernel/time_ticks.c ****  *
+ 990:../MQXLITE/kernel/time_ticks.c ****  * \param[in] hwtick_function_ptr Pointer to the function that returns hw tick,
+ 991:../MQXLITE/kernel/time_ticks.c ****  * to be executed by the kernel.
+ 992:../MQXLITE/kernel/time_ticks.c ****  * \param[in] parameter           Parameter of the function that returns hw tick.
+ 993:../MQXLITE/kernel/time_ticks.c ****  *
+ 994:../MQXLITE/kernel/time_ticks.c ****  * \see _time_set_hwticks_per_tick
+ 995:../MQXLITE/kernel/time_ticks.c ****  * \see _time_get_hwticks
+ 996:../MQXLITE/kernel/time_ticks.c ****  */
+ 997:../MQXLITE/kernel/time_ticks.c **** void _time_set_hwtick_function
+ 998:../MQXLITE/kernel/time_ticks.c **** (
+ 999:../MQXLITE/kernel/time_ticks.c ****     MQX_GET_HWTICKS_FPTR hwtick_function_ptr,
+1000:../MQXLITE/kernel/time_ticks.c ****     pointer              parameter
+1001:../MQXLITE/kernel/time_ticks.c **** )
+1002:../MQXLITE/kernel/time_ticks.c **** { /* Body */
+ 1818              		.loc 1 1002 0
+ 1819              		.cfi_startproc
+ 1820 0000 90B5     		push	{r4, r7, lr}
+ 1821              	.LCFI47:
+ 1822              		.cfi_def_cfa_offset 12
+ 1823              		.cfi_offset 4, -12
+ 1824              		.cfi_offset 7, -8
+ 1825              		.cfi_offset 14, -4
+ 1826 0002 83B0     		sub	sp, sp, #12
+ 1827              	.LCFI48:
+ 1828              		.cfi_def_cfa_offset 24
+ 1829 0004 00AF     		add	r7, sp, #0
+ 1830              	.LCFI49:
+ 1831              		.cfi_def_cfa_register 7
+ 1832 0006 7860     		str	r0, [r7, #4]
+ 1833 0008 3960     		str	r1, [r7]
+1003:../MQXLITE/kernel/time_ticks.c ****     register KERNEL_DATA_STRUCT_PTR kernel_data;
+1004:../MQXLITE/kernel/time_ticks.c **** 
+1005:../MQXLITE/kernel/time_ticks.c ****     _GET_KERNEL_DATA(kernel_data);
+ 1834              		.loc 1 1005 0
+ 1835 000a 064B     		ldr	r3, .L136
+ 1836 000c 1C68     		ldr	r4, [r3]
+1006:../MQXLITE/kernel/time_ticks.c **** 
+1007:../MQXLITE/kernel/time_ticks.c ****     kernel_data->GET_HWTICKS = hwtick_function_ptr;
+ 1837              		.loc 1 1007 0
+ 1838 000e A423     		mov	r3, #164
+ 1839 0010 5B00     		lsl	r3, r3, #1
+ 1840 0012 7A68     		ldr	r2, [r7, #4]
+ 1841 0014 E250     		str	r2, [r4, r3]
+1008:../MQXLITE/kernel/time_ticks.c ****     kernel_data->GET_HWTICKS_PARAM = parameter;
+ 1842              		.loc 1 1008 0
+ 1843 0016 A623     		mov	r3, #166
+ 1844 0018 5B00     		lsl	r3, r3, #1
+ 1845 001a 3A68     		ldr	r2, [r7]
+ 1846 001c E250     		str	r2, [r4, r3]
+1009:../MQXLITE/kernel/time_ticks.c **** 
+1010:../MQXLITE/kernel/time_ticks.c **** } /* Endbody */
+ 1847              		.loc 1 1010 0
+ 1848 001e BD46     		mov	sp, r7
+ 1849 0020 03B0     		add	sp, sp, #12
+ 1850              		@ sp needed for prologue
+ 1851 0022 90BD     		pop	{r4, r7, pc}
+ 1852              	.L137:
+ 1853              		.align	2
+ 1854              	.L136:
+ 1855 0024 00000000 		.word	_mqx_kernel_data
+ 1856              		.cfi_endproc
+ 1857              	.LFE17:
+ 1859              		.section	.text._time_set_hwticks_per_tick,"ax",%progbits
+ 1860              		.align	2
+ 1861              		.global	_time_set_hwticks_per_tick
+ 1862              		.code	16
+ 1863              		.thumb_func
+ 1865              	_time_set_hwticks_per_tick:
+ 1866              	.LFB18:
+1011:../MQXLITE/kernel/time_ticks.c **** #endif /* MQX_HAS_HW_TICKS */
+1012:../MQXLITE/kernel/time_ticks.c **** 
+1013:../MQXLITE/kernel/time_ticks.c **** #if MQX_HAS_HW_TICKS
+1014:../MQXLITE/kernel/time_ticks.c **** /*!
+1015:../MQXLITE/kernel/time_ticks.c ****  * \brief Sets the number of hardware ticks per tick.
+1016:../MQXLITE/kernel/time_ticks.c ****  *
+1017:../MQXLITE/kernel/time_ticks.c ****  * \param[in] new_val New number of hardware ticks per tick.
+1018:../MQXLITE/kernel/time_ticks.c ****  *
+1019:../MQXLITE/kernel/time_ticks.c ****  * \see _time_get_hwticks_per_tick
+1020:../MQXLITE/kernel/time_ticks.c ****  * \see _time_get_hwticks
+1021:../MQXLITE/kernel/time_ticks.c ****  */
+1022:../MQXLITE/kernel/time_ticks.c **** void _time_set_hwticks_per_tick
+1023:../MQXLITE/kernel/time_ticks.c **** (
+1024:../MQXLITE/kernel/time_ticks.c ****     uint_32 new_val
+1025:../MQXLITE/kernel/time_ticks.c **** )
+1026:../MQXLITE/kernel/time_ticks.c **** { /* Body */
+ 1867              		.loc 1 1026 0
+ 1868              		.cfi_startproc
+ 1869 0000 90B5     		push	{r4, r7, lr}
+ 1870              	.LCFI50:
+ 1871              		.cfi_def_cfa_offset 12
+ 1872              		.cfi_offset 4, -12
+ 1873              		.cfi_offset 7, -8
+ 1874              		.cfi_offset 14, -4
+ 1875 0002 83B0     		sub	sp, sp, #12
+ 1876              	.LCFI51:
+ 1877              		.cfi_def_cfa_offset 24
+ 1878 0004 00AF     		add	r7, sp, #0
+ 1879              	.LCFI52:
+ 1880              		.cfi_def_cfa_register 7
+ 1881 0006 7860     		str	r0, [r7, #4]
+1027:../MQXLITE/kernel/time_ticks.c ****     register KERNEL_DATA_STRUCT_PTR kernel_data;
+1028:../MQXLITE/kernel/time_ticks.c **** 
+1029:../MQXLITE/kernel/time_ticks.c ****     _GET_KERNEL_DATA(kernel_data);
+ 1882              		.loc 1 1029 0
+ 1883 0008 044B     		ldr	r3, .L139
+ 1884 000a 1C68     		ldr	r4, [r3]
+1030:../MQXLITE/kernel/time_ticks.c **** 
+1031:../MQXLITE/kernel/time_ticks.c ****     kernel_data->HW_TICKS_PER_TICK = new_val;
+ 1885              		.loc 1 1031 0
+ 1886 000c A223     		mov	r3, #162
+ 1887 000e 5B00     		lsl	r3, r3, #1
+ 1888 0010 7A68     		ldr	r2, [r7, #4]
+ 1889 0012 E250     		str	r2, [r4, r3]
+1032:../MQXLITE/kernel/time_ticks.c **** 
+1033:../MQXLITE/kernel/time_ticks.c **** } /* Endbody */
+ 1890              		.loc 1 1033 0
+ 1891 0014 BD46     		mov	sp, r7
+ 1892 0016 03B0     		add	sp, sp, #12
+ 1893              		@ sp needed for prologue
+ 1894 0018 90BD     		pop	{r4, r7, pc}
+ 1895              	.L140:
+ 1896 001a C046     		.align	2
+ 1897              	.L139:
+ 1898 001c 00000000 		.word	_mqx_kernel_data
+ 1899              		.cfi_endproc
+ 1900              	.LFE18:
+ 1902              		.section	.text._time_get_ticks_per_sec,"ax",%progbits
+ 1903              		.align	2
+ 1904              		.global	_time_get_ticks_per_sec
+ 1905              		.code	16
+ 1906              		.thumb_func
+ 1908              	_time_get_ticks_per_sec:
+ 1909              	.LFB19:
+1034:../MQXLITE/kernel/time_ticks.c **** 
+1035:../MQXLITE/kernel/time_ticks.c **** #endif /* MQX_HAS_HW_TICKS */
+1036:../MQXLITE/kernel/time_ticks.c **** 
+1037:../MQXLITE/kernel/time_ticks.c **** #if MQX_HAS_TICK
+1038:../MQXLITE/kernel/time_ticks.c **** /*!
+1039:../MQXLITE/kernel/time_ticks.c ****  * \brief Gets the timer frequency (in ticks per second) that MQX uses.
+1040:../MQXLITE/kernel/time_ticks.c ****  *
+1041:../MQXLITE/kernel/time_ticks.c ****  * \warning If the timer frequency does not correspond with the interrupt period
+1042:../MQXLITE/kernel/time_ticks.c ****  * that was programmed at the hardware level, some timing functions will give
+1043:../MQXLITE/kernel/time_ticks.c ****  * incorrect results.
+1044:../MQXLITE/kernel/time_ticks.c ****  *
+1045:../MQXLITE/kernel/time_ticks.c ****  * \return Period of clock interrupt in ticks per second.
+1046:../MQXLITE/kernel/time_ticks.c ****  *
+1047:../MQXLITE/kernel/time_ticks.c ****  * \see _time_set_ticks_per_sec
+1048:../MQXLITE/kernel/time_ticks.c ****  */
+1049:../MQXLITE/kernel/time_ticks.c **** _mqx_uint _time_get_ticks_per_sec
+1050:../MQXLITE/kernel/time_ticks.c **** (
+1051:../MQXLITE/kernel/time_ticks.c ****     void
+1052:../MQXLITE/kernel/time_ticks.c **** )
+1053:../MQXLITE/kernel/time_ticks.c **** { /* Body */
+ 1910              		.loc 1 1053 0
+ 1911              		.cfi_startproc
+ 1912 0000 90B5     		push	{r4, r7, lr}
+ 1913              	.LCFI53:
+ 1914              		.cfi_def_cfa_offset 12
+ 1915              		.cfi_offset 4, -12
+ 1916              		.cfi_offset 7, -8
+ 1917              		.cfi_offset 14, -4
+ 1918 0002 00AF     		add	r7, sp, #0
+ 1919              	.LCFI54:
+ 1920              		.cfi_def_cfa_register 7
+1054:../MQXLITE/kernel/time_ticks.c ****     register KERNEL_DATA_STRUCT_PTR kernel_data;
+1055:../MQXLITE/kernel/time_ticks.c **** 
+1056:../MQXLITE/kernel/time_ticks.c ****     _GET_KERNEL_DATA(kernel_data);
+ 1921              		.loc 1 1056 0
+ 1922 0004 034B     		ldr	r3, .L142
+ 1923 0006 1C68     		ldr	r4, [r3]
+1057:../MQXLITE/kernel/time_ticks.c ****     return( kernel_data->TICKS_PER_SECOND );
+ 1924              		.loc 1 1057 0
+ 1925 0008 9E23     		mov	r3, #158
+ 1926 000a 5B00     		lsl	r3, r3, #1
+ 1927 000c E358     		ldr	r3, [r4, r3]
+1058:../MQXLITE/kernel/time_ticks.c **** 
+1059:../MQXLITE/kernel/time_ticks.c **** } /* Endbody */
+ 1928              		.loc 1 1059 0
+ 1929 000e 181C     		mov	r0, r3
+ 1930 0010 BD46     		mov	sp, r7
+ 1931              		@ sp needed for prologue
+ 1932 0012 90BD     		pop	{r4, r7, pc}
+ 1933              	.L143:
+ 1934              		.align	2
+ 1935              	.L142:
+ 1936 0014 00000000 		.word	_mqx_kernel_data
+ 1937              		.cfi_endproc
+ 1938              	.LFE19:
+ 1940              		.text
+ 1941              	.Letext0:
+ 1942              		.file 2 "C:/Users/LARM/workspace/MQX-Lite + SPI + Motor + Ultrassom/MQXLITE/psp/cortex_m/psptypes.
+ 1943              		.file 3 "C:/Users/LARM/workspace/MQX-Lite + SPI + Motor + Ultrassom/MQXLITE/include/mqxlite.h"
+ 1944              		.file 4 "C:/Users/LARM/workspace/MQX-Lite + SPI + Motor + Ultrassom/MQXLITE/include/queue.h"
+ 1945              		.file 5 "C:/Users/LARM/workspace/MQX-Lite + SPI + Motor + Ultrassom/MQXLITE/include/lwsem.h"
+ 1946              		.file 6 "C:/Users/LARM/workspace/MQX-Lite + SPI + Motor + Ultrassom/MQXLITE/psp/cortex_m/cortex.h"
+ 1947              		.file 7 "C:/Users/LARM/workspace/MQX-Lite + SPI + Motor + Ultrassom/MQXLITE/include/mqxlite_prv.h"
+ 1948              		.file 8 "C:/Users/LARM/workspace/MQX-Lite + SPI + Motor + Ultrassom/MQXLITE/psp/cortex_m/psp_ticks
+DEFINED SYMBOLS
+                            *ABS*:00000000 time_ticks.c
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:18     .text._time_delay_for:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:23     .text._time_delay_for:00000000 _time_delay_for
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:127    .text._time_delay_internal:00000000 _time_delay_internal
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:117    .text._time_delay_for:00000068 $d
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:122    .text._time_delay_internal:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:304    .text._time_delay_internal:000000ec $d
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:309    .text._time_delay_ticks:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:314    .text._time_delay_ticks:00000000 _time_delay_ticks
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:416    .text._time_delay_ticks:00000070 $d
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:421    .text._time_delay_until:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:426    .text._time_delay_until:00000000 _time_delay_until
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:517    .text._time_delay_until:0000005c $d
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:522    .text._time_diff_ticks:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:527    .text._time_diff_ticks:00000000 _time_diff_ticks
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:582    .text._time_diff_ticks_int32:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:587    .text._time_diff_ticks_int32:00000000 _time_diff_ticks_int32
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:646    .text._time_diff_ticks_int32:00000044 $d
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:651    .text._time_dequeue:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:656    .text._time_dequeue:00000000 _time_dequeue
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:746    .text._time_dequeue:0000007c $d
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:752    .text._time_dequeue_td:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:757    .text._time_dequeue_td:00000000 _time_dequeue_td
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:834    .text._time_dequeue_td:0000006c $d
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:840    .text._time_get_elapsed_ticks:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:845    .text._time_get_elapsed_ticks:00000000 _time_get_elapsed_ticks
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:969    .text._time_get_elapsed_ticks:00000098 $d
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:974    .text._time_get_elapsed_ticks_fast:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:979    .text._time_get_elapsed_ticks_fast:00000000 _time_get_elapsed_ticks_fast
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:1052   .text._time_get_elapsed_ticks_fast:0000005c $d
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:1057   .text._time_get_hwticks:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:1062   .text._time_get_hwticks:00000000 _time_get_hwticks
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:1114   .text._time_get_hwticks:0000003c $d
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:1119   .text._time_get_ticks:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:1124   .text._time_get_ticks:00000000 _time_get_ticks
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:1241   .text._time_get_ticks:00000088 $d
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:1246   .text._time_get_hwticks_per_tick:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:1251   .text._time_get_hwticks_per_tick:00000000 _time_get_hwticks_per_tick
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:1279   .text._time_get_hwticks_per_tick:00000014 $d
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:1284   .text._time_init_ticks:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:1289   .text._time_init_ticks:00000000 _time_init_ticks
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:1356   .text._time_init_ticks:0000004c $d
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:1361   .text._time_notify_kernel:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:1366   .text._time_notify_kernel:00000000 _time_notify_kernel
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:1669   .text._time_notify_kernel:000001a4 $d
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:1676   .text._time_set_ticks:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:1681   .text._time_set_ticks:00000000 _time_set_ticks
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:1763   .text._time_set_ticks:00000058 $d
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:1768   .text._time_set_timer_vector:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:1773   .text._time_set_timer_vector:00000000 _time_set_timer_vector
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:1806   .text._time_set_timer_vector:0000001c $d
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:1811   .text._time_set_hwtick_function:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:1816   .text._time_set_hwtick_function:00000000 _time_set_hwtick_function
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:1855   .text._time_set_hwtick_function:00000024 $d
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:1860   .text._time_set_hwticks_per_tick:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:1865   .text._time_set_hwticks_per_tick:00000000 _time_set_hwticks_per_tick
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:1898   .text._time_set_hwticks_per_tick:0000001c $d
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:1903   .text._time_get_ticks_per_sec:00000000 $t
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:1908   .text._time_get_ticks_per_sec:00000000 _time_get_ticks_per_sec
+C:\Users\LARM\AppData\Local\Temp\cctqLQB6.s:1936   .text._time_get_ticks_per_sec:00000014 $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+_task_set_error
+_psp_add_ticks
+_mqx_kernel_data
+_sched_execute_scheduler_internal
+_psp_subtract_ticks
+_psp_subtract_ticks_int32
+_task_get_td
+_int_disable
+_int_enable
+_psp_normalize_ticks
+_mqx_zero_tick_struct
